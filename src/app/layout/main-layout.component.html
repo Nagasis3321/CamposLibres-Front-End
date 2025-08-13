@@ -1,0 +1,16 @@
+<div class="flex h-screen bg-neutral-light">
+  <!-- Sidebar con clase condicional para el colapso -->
+  <app-sidebar [isCollapsed]="isSidebarCollapsed"></app-sidebar>
+
+  <!-- Contenedor principal que ocupa el resto del espacio -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    
+    <!-- El header ahora emite un evento para retraer el sidebar -->
+    <app-header (toggleSidebarRequest)="toggleSidebar()"></app-header>
+
+    <!-- Área de contenido principal con scroll -->
+    <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

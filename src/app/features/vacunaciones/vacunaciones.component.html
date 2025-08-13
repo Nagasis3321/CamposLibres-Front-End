@@ -1,0 +1,37 @@
+<div class="space-y-6">
+  <!-- Cabecera y botón de acción -->
+  <div class="flex justify-between items-center">
+    <h2 class="text-3xl font-bold text-neutral-dark">Campañas Sanitarias</h2>
+    <button (click)="openModalNuevaCampana()" class="btn-primary">
+      Nueva Campaña
+    </button>
+  </div>
+
+  <!-- Lista de Campañas -->
+  <div *ngIf="campanas$ | async as campanas; else loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <app-campana-card 
+      *ngFor="let campana of campanas" 
+      [campana]="campana"
+      (verCarga)="onVerCarga($event)">
+    </app-campana-card>
+  </div>
+  <ng-template #loading>
+    <p class="text-center text-neutral italic">Cargando campañas...</p>
+  </ng-template>
+
+  <!-- Modal para Etapa 1: Crear Campaña -->
+  <app-campana-form 
+    *ngIf="isFormCampanaOpen"
+    (save)="onSaveCampana($event)" 
+    (cancel)="closeAllModals()">
+  </app-campana-form>
+
+  <!-- Modal para Etapa 2: Cargar Animales -->
+  <app-carga-animales
+    *ngIf="isCargaAnimalesOpen && campanaSeleccionada"
+    [campana]="campanaSeleccionada"
+    [todosLosAnimales]="todosLosAnimales"
+    (save)="onFinalizarCarga($event)"
+    (cancel)="closeAllModals()">
+  </app-carga-animales>
+</div>

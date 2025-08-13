@@ -1,0 +1,37 @@
+<!-- Overlay para el fondo oscuro -->
+<div class="modal-overlay" (click)="cancel.emit()"></div>
+
+<!-- Contenedor principal del formulario -->
+<div class="form-container">
+  <div class="form-header">
+    <h2>Nueva Campaña (Etapa 1 de 2)</h2>
+    <button (click)="cancel.emit()" class="btn-close">&times;</button>
+  </div>
+
+  <div class="form-body">
+    <form [formGroup]="campanaForm" (ngSubmit)="onSubmit()" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="nombreCampana">Nombre de la Campaña</label>
+          <input id="nombreCampana" type="text" formControlName="nombreCampana" class="form-input">
+        </div>
+        <div>
+          <label for="fechaCampana">Fecha</label>
+          <input id="fechaCampana" type="date" formControlName="fechaCampana" class="form-input">
+        </div>
+        <div class="md:col-span-2">
+          <label for="productoUtilizado">Producto Utilizado (Opcional)</label>
+          <input id="productoUtilizado" type="text" formControlName="productoUtilizado" class="form-input">
+        </div>
+        <div class="md:col-span-2">
+          <label for="obsCampana">Observaciones</label>
+          <textarea id="obsCampana" formControlName="obsCampana" rows="3" class="form-input"></textarea>
+        </div>
+      </div>
+      <div class="form-footer">
+        <button type="button" (click)="cancel.emit()" class="btn-secondary">Cancelar</button>
+        <button type="submit" [disabled]="campanaForm.invalid" class="btn-primary disabled:opacity-50">Siguiente: Cargar Animales</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<div *ngIf="animalConsultado; else vistaTodasRelaciones" class="card">
+  <div class="flex justify-between items-start">
+    <h3 class="text-xl font-semibold mb-4">
+      Relaciones de: 
+      <span class="text-primary">{{ animalConsultado.caravana || '(Sin Caravana)' }}</span>
+    </h3>
+    <button (click)="editRelationshipRequest.emit(animalConsultado)" class="btn-secondary text-sm">Cambiar Relaciones</button>
+  </div>
+  <!-- ... (resto del HTML de la vista individual sin cambios) ... -->
+</div>
+
+<!-- Vista para todas las relaciones -->
+<ng-template #vistaTodasRelaciones>
+  <div class="card">
+    <h3 class="text-xl font-semibold mb-4">Todas las Relaciones Familiares Registradas</h3>
+    <div *ngIf="todasLasRelaciones.length > 0; else noHayRelaciones" class="space-y-4">
+      <div *ngFor="let relacion of todasLasRelaciones" class="p-4 border rounded-lg">
+        <div class="flex justify-between items-center">
+          <h4 class="font-semibold text-primary">Madre: {{ relacion.madre.caravana || '(Sin Caravana)' }}</h4>
+          <button (click)="editRelationshipRequest.emit(relacion.crias[0])" class="text-primary hover:underline text-xs font-semibold">
+            Gestionar Crías
+          </button>
+        </div>
+        <ul class="list-disc pl-6 mt-2 text-sm text-neutral-dark space-y-1">
+          <li *ngFor="let cria of relacion.crias">
+            <strong>{{ cria.caravana || '(Sin Caravana)' }}</strong> - {{ cria.tipoAnimal }} {{ cria.pelaje }}
+          </li>
+        </ul>
+      </div>
+    </div>
+    <ng-template #noHayRelaciones>
+      <p class="text-center text-neutral italic py-4">No hay relaciones familiares registradas.</p>
+    </ng-template>
+  </div>
+</ng-template>

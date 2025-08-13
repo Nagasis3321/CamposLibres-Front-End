@@ -1,0 +1,65 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h2 class="text-3xl font-bold text-neutral-dark">Gestión de Grupos</h2>
+    <button (click)="openCreateModal()" class="btn-primary">
+      Crear Nuevo Grupo
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Columna de lista de grupos -->
+    <div class="md:col-span-1">
+      <div class="card">
+        <h3 class="text-lg font-semibold mb-3">Mis Grupos</h3>
+        <div *ngIf="userGroups$ | async as groups; else loading" class="space-y-2">
+          <div *ngFor="let group of groups" 
+               (click)="selectGroup(group)"
+               class="p-3 rounded-md cursor-pointer transition-colors"
+               [ngClass]="selectedGroup?.id === group.id ? 'bg-primary text-white' : 'hover:bg-gray-100'">
+            {{ group.nombre }}
+          </div>
+          <p *ngIf="groups.length === 0" class="text-sm text-neutral italic">No perteneces a ningún grupo.</p>
+        </div>
+        <ng-template #loading><p class="text-sm text-neutral italic">Cargando grupos...</p></ng-template>
+      </div>
+    </div>
+
+    <!-- Columna de detalles del grupo seleccionado -->
+    <div class="md:col-span-2 space-y-6">
+      <div *ngIf="selectedGroup; else noSelection">
+        <!-- Componente de Gestión de Grupo -->
+        <div class="card">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-neutral-dark">{{ selectedGroup.nombre }}</h3>
+            <div *ngIf="canCurrentUserManageGroup()" class="flex space-x-2">
+              <button (click)="openEditModal()" class="btn-secondary text-sm">Modificar</button>
+              <button *ngIf="isCurrentUserOwner()" (click)="onDeleteGroup()" class="btn-primary bg-danger hover:bg-red-700 text-sm">Eliminar Grupo</button>
+            </div>
+          </div>
+        </div>
+        <!-- Componente de Gestión de Miembros -->
+        <app-member-manager 
+          [group]="selectedGroup"
+          [currentUser]="currentUser"
+          (invite)="onInviteMember($event)"
+          (remove)="onRemoveMember($event)"
+          (changeRole)="onChangeRole($event)">
+        </app-member-manager>
+      </div>
+      <ng-template #noSelection>
+        <div class="card text-center">
+          <p class="text-neutral italic">Selecciona un grupo de la lista para ver sus detalles y gestionar miembros.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- Modal para crear o editar un grupo -->
+  <app-modal [isOpen]="isModalOpen" [title]="modalMode === 'create' ? 'Crear Nuevo Grupo' : 'Modificar Grupo'" (close)="isModalOpen = false">
+    <app-group-form 
+      [group]="modalMode === 'edit' ? selectedGroup : null"
+      (save)="onSaveGroup($event)" 
+      (cancel)="isModalOpen = false">
+    </app-group-form>
+  </app-modal>
+</div>

@@ -1,0 +1,24 @@
+<div class="card hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between h-full">
+    <div>
+      <div class="flex justify-between items-start mb-2">
+        <h4 class="text-lg font-semibold text-primary">{{ campana.nombreCampana }}</h4>
+        <span class="px-3 py-1 text-xs font-semibold rounded-full" 
+              [ngClass]="{
+                'bg-yellow-200 text-yellow-800': campana.estado === 'Pendiente Carga',
+                'bg-green-200 text-green-800': campana.estado === 'Completada'
+              }">
+          {{ campana.estado }}
+        </span>
+      </div>
+      <p class="text-sm text-neutral"><strong>Fecha:</strong> {{ campana.fechaCampana | date:'dd/MM/yyyy' }}</p>
+      <p class="text-sm text-neutral"><strong>Producto:</strong> {{ campana.productoUtilizado || 'N/A' }}</p>
+      <p class="text-sm text-neutral"><strong>Animales:</strong> {{ campana.animalesAgregados.length }}</p>
+      <p class="mt-2 text-xs text-gray-500 italic">{{ campana.obsCampana || 'Sin observaciones.' }}</p>
+    </div>
+    <div class="mt-4 flex justify-end">
+      <button (click)="verCarga.emit(campana)" class="text-sm text-primary-dark font-semibold hover:underline">
+        {{ campana.estado === 'Completada' ? 'Ver/Editar Carga' : 'Cargar Animales' }}
+      </button>
+    </div>
+  </div>
+  

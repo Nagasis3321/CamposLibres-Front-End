@@ -1,0 +1,51 @@
+<div class="space-y-6">
+  <div *ngIf="canManageMembers()" class="card">
+    <h4 class="text-lg font-semibold mb-3">Invitar Nuevo Miembro</h4>
+    <form [formGroup]="inviteForm" (ngSubmit)="onInviteSubmit()" class="flex items-end space-x-2">
+      <div class="flex-grow">
+        <label for="email" class="text-sm font-medium">Email del usuario</label>
+        <input id="email" type="email" formControlName="email" class="mt-1 w-full border border-gray-300 p-2 rounded-md">
+      </div>
+      <div>
+        <label for="role" class="text-sm font-medium">Asignar Rol</label>
+        <select id="role" formControlName="role" class="mt-1 w-full border border-gray-300 p-2 rounded-md">
+          <option>Miembro</option>
+          <option>Administrador</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-primary" [disabled]="inviteForm.invalid">Invitar</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h4 class="text-lg font-semibold mb-3">Miembros del Grupo ({{ group.miembros.length }})</h4>
+    <div class="space-y-3">
+      <div *ngFor="let member of group.miembros" class="flex items-center justify-between p-3 bg-neutral-light rounded-md">
+        <div>
+          <p class="font-semibold">{{ member.nombre }}</p>
+          <p class="text-sm text-neutral">{{ member.email }}</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <select *ngIf="canEditMember(member)" 
+                  [value]="member.role" 
+                  (change)="changeRole.emit({ member: member, newRole: $any($event.target).value })"
+                  class="border border-gray-300 p-1 rounded-md text-xs">
+            <option>Miembro</option>
+            <option>Administrador</option>
+          </select>
+          <span *ngIf="!canEditMember(member)" class="px-3 py-1 text-xs font-semibold rounded-full"
+                [ngClass]="{
+                  'bg-yellow-200 text-yellow-800': member.role === 'Propietario',
+                  'bg-blue-200 text-blue-800': member.role === 'Administrador',
+                  'bg-gray-200 text-gray-800': member.role === 'Miembro'
+                }">
+            {{ member.role }}
+          </span>
+          <button *ngIf="canEditMember(member)" (click)="remove.emit(member)" class="text-danger hover:underline text-sm">
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
