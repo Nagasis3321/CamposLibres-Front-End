@@ -1,71 +1,116 @@
-<form [formGroup]="criaForm" (ngSubmit)="onSubmit()" class="flex flex-col max-h-[75vh]">
-  <!-- Contenedor de campos con scroll vertical -->
+<form [formGroup]="criaForm" (ngSubmit)="onSubmit()" class="flex flex-col max-h-[85vh]">
+  <!-- Contenedor principal con scroll vertical -->
   <div class="overflow-y-auto flex-grow pr-2 space-y-6">
-    <fieldset class="p-4 border rounded-md space-y-2">
-      <legend class="px-2 font-semibold">Datos de la Madre</legend>
-      <div class="flex flex-col sm:flex-row sm:items-start sm:space-x-2 gap-2">
-        <div class="flex-grow">
-          <label for="caravanaMadre" class="text-sm font-medium">Buscar por Caravana (o dejar vacío)</label>
-          <input id="caravanaMadre" type="text" formControlName="caravanaMadre" class="mt-1 w-full border border-gray-300 rounded-md p-2">
-        </div>
-        <button type="button" (click)="buscarMadre()" class="btn-secondary w-full sm:w-auto sm:mt-6">Buscar</button>
-      </div>
-
-      <div *ngIf="madreEncontrada" class="p-2 bg-green-100 text-green-800 text-sm rounded-md">
-        Madre seleccionada: <strong>{{ madreEncontrada.caravana }}</strong> - {{ madreEncontrada.pelaje }}
-      </div>
-      <div *ngIf="errorBusquedaMadre" class="p-2 bg-red-100 text-danger text-sm rounded-md">
-        {{ errorBusquedaMadre }}
-      </div>
-
-      <div *ngIf="posiblesMadres.length > 0" class="mt-2 border-t pt-2">
-        <p class="text-sm font-medium mb-2">Seleccione una madre de la lista:</p>
-        <div class="max-h-48 overflow-y-auto space-y-1 pr-2">
-          <div *ngFor="let madre of posiblesMadres" 
-               (click)="seleccionarMadre(madre)"
-               class="p-2 hover:bg-primary-light hover:text-white cursor-pointer rounded-md text-sm border">
-            <strong>Caravana: {{ madre.caravana || 'S/C' }}</strong> - {{ madre.pelaje }} (Dueño: {{ madre.dueno }})
+    
+    <!-- SECCIÓN 1: SELECCIONAR PADRES -->
+    <fieldset class="p-4 border rounded-md">
+      <div class="flex justify-between items-center mb-4">
+        <legend class="px-2 font-semibold text-lg">1. Seleccionar Padres</legend>
+        <div class="relative group">
+          <span class="text-primary cursor-pointer font-bold text-xl">?</span>
+          <div class="absolute bottom-full right-0 mb-2 w-64 bg-neutral-dark text-white text-xs rounded py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
+            Debe seleccionar al menos una madre o un padre para establecer la relación.
           </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Columna Izquierda: Búsqueda y Resultados -->
+        <div class="flex flex-col space-y-2">
+          <label class="text-sm font-medium">Buscar Animal (por caravana)</label>
+          <div class="flex space-x-2">
+            <input type="text" [formControl]="parentSearchControl" placeholder="Dejar vacío para ver todos" class="w-full border border-gray-300 rounded-md p-2">
+            <button type="button" (click)="buscarAnimales()" class="btn-secondary">Buscar</button>
+          </div>
+          <div class="h-48 overflow-y-auto border rounded-md p-1 space-y-1">
+            <p *ngIf="searchResults.length === 0" class="text-xs text-center text-gray-400 p-2">No hay resultados.</p>
+            <div *ngFor="let animal of searchResults" 
+                 (click)="seleccionarParaAsignar(animal)"
+                 class="p-2 rounded-md text-sm border-b flex justify-between items-center"
+                 [ngClass]="{
+                   'bg-blue-100': animalParaAsignar?.id === animal.id, 
+                   'hover:bg-gray-100 cursor-pointer': animalParaAsignar?.id !== animal.id,
+                   'opacity-50 cursor-not-allowed': madreSeleccionada?.id === animal.id || padreSeleccionado?.id === animal.id
+                 }">
+              <span><strong>{{ animal.caravana || 'S/C' }}</strong> - {{ animal.sexo }}</span>
+              <span class="text-xs font-semibold text-primary">{{ animalParaAsignar?.id === animal.id ? 'Seleccionado' : 'Seleccionar' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Padres Seleccionados y Botón de Asignar -->
+        <div class="flex flex-col space-y-2">
+          <label class="text-sm font-medium">Padres Seleccionados</label>
+          <div class="border rounded-md p-2 min-h-[120px] space-y-2 flex flex-col justify-center">
+            <div *ngIf="madreSeleccionada" class="p-2 bg-pink-100 text-pink-800 text-sm rounded-md flex justify-between items-center">
+              <span><strong>Madre:</strong> {{ madreSeleccionada.caravana }}</span>
+              <button type="button" (click)="removerParent('madre')" class="font-bold text-pink-600">&times;</button>
+            </div>
+            <div *ngIf="padreSeleccionado" class="p-2 bg-blue-100 text-blue-800 text-sm rounded-md flex justify-between items-center">
+              <span><strong>Padre:</strong> {{ padreSeleccionado.caravana }}</span>
+              <button type="button" (click)="removerParent('padre')" class="font-bold text-blue-600">&times;</button>
+            </div>
+            <p *ngIf="!madreSeleccionada && !padreSeleccionado" class="text-xs text-center text-gray-400">Seleccione un animal de la lista.</p>
+          </div>
+          <button type="button" (click)="asignarParent()" class="btn-primary w-full mt-2" [disabled]="!animalParaAsignar">
+            Asignar {{ animalParaAsignar?.sexo === 'Hembra' ? 'Madre' : (animalParaAsignar?.sexo === 'Macho' ? 'Padre' : '') }}
+          </button>
         </div>
       </div>
     </fieldset>
 
-    <fieldset class="p-4 border rounded-md">
-      <legend class="px-2 font-semibold">Datos de la Cría</legend>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+    <!-- SECCIÓN 2: IDENTIFICAR CRÍA -->
+    <fieldset class="p-4 border rounded-md" formGroupName="cria">
+      <legend class="px-2 font-semibold text-lg">2. Identificar Cría</legend>
+      <div class="flex rounded-md shadow-sm mt-2" role="group">
+        <button type="button" (click)="setMode('select')" [ngClass]="mode === 'select' ? 'bg-primary text-white' : 'bg-white'" class="px-4 py-2 text-sm font-medium text-gray-900 border border-gray-200 rounded-l-lg hover:bg-gray-100 w-1/2">
+          Seleccionar Existente
+        </button>
+        <button type="button" (click)="setMode('create')" [ngClass]="mode === 'create' ? 'bg-primary text-white' : 'bg-white'" class="px-4 py-2 text-sm font-medium text-gray-900 border border-gray-200 rounded-r-lg hover:bg-gray-100 w-1/2">
+          Registrar Nueva Cría
+        </button>
+      </div>
+
+      <div *ngIf="mode === 'create'" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div>
-          <label for="caravana" class="text-sm font-medium">Caravana (Opcional)</label>
-          <input id="caravana" type="text" formControlName="caravana" class="mt-1 w-full border border-gray-300 rounded-md p-2">
+          <label class="text-sm font-medium">Caravana (Opcional)</label>
+          <input type="text" formControlName="caravana" class="mt-1 w-full border border-gray-300 rounded-md p-2">
         </div>
         <div>
-          <label for="pelajeCria" class="text-sm font-medium">Pelaje</label>
-          <input id="pelajeCria" type="text" formControlName="pelaje" list="pelajes-list-cria" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+          <label class="text-sm font-medium">Pelaje</label>
+          <input type="text" formControlName="pelaje" list="pelajes-list-cria" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
           <datalist id="pelajes-list-cria">
             <option *ngFor="let pelaje of pelajes" [value]="pelaje"></option>
           </datalist>
         </div>
         <div>
-          <label for="sexo" class="text-sm font-medium">Sexo</label>
-          <select id="sexo" formControlName="sexo" class="mt-1 w-full border border-gray-300 rounded-md p-2">
+          <label class="text-sm font-medium">Sexo</label>
+          <select formControlName="sexo" class="mt-1 w-full border border-gray-300 rounded-md p-2">
             <option>Hembra</option>
             <option>Macho</option>
           </select>
         </div>
         <div>
-          <label for="fechaNacimiento" class="text-sm font-medium">Fecha de Nacimiento</label>
-          <input id="fechaNacimiento" type="date" formControlName="fechaNacimiento" class="mt-1 w-full border border-gray-300 rounded-md p-2">
+          <label class="text-sm font-medium">Fecha de Nacimiento</label>
+          <input type="date" formControlName="fechaNacimiento" class="mt-1 w-full border border-gray-300 rounded-md p-2">
         </div>
-        <div class="md:col-span-2">
-          <label for="descripcion" class="text-sm font-medium">Descripción</label>
-          <textarea id="descripcion" formControlName="descripcion" rows="2" class="mt-1 w-full border border-gray-300 rounded-md p-2"></textarea>
-        </div>
+      </div>
+
+      <div *ngIf="mode === 'select'" class="mt-4">
+        <label class="text-sm font-medium">Seleccionar Animal Existente como Cría</label>
+        <select formControlName="existingCriaId" class="mt-1 w-full border border-gray-300 rounded-md p-2">
+          <option [ngValue]="null" disabled>-- Elija un animal --</option>
+          <option *ngFor="let animal of todosLosAnimales" [value]="animal.id">
+            {{ animal.caravana || '(Sin Caravana)' }} - {{ animal.pelaje }}
+          </option>
+        </select>
       </div>
     </fieldset>
   </div>
 
-  <!-- Contenedor de botones fijo en la parte inferior -->
+  <!-- Botones de Acción -->
   <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 gap-2 pt-4 mt-auto flex-shrink-0">
     <button type="button" (click)="cancel.emit()" class="btn-secondary w-full sm:w-auto">Cancelar</button>
-    <button type="submit" [disabled]="criaForm.invalid" class="btn-primary disabled:opacity-50 w-full sm:w-auto">Guardar Cría</button>
+    <button type="submit" [disabled]="criaForm.invalid" class="btn-primary disabled:opacity-50 w-full sm:w-auto">Guardar Relación</button>
   </div>
 </form>

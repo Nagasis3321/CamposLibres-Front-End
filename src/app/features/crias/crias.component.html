@@ -2,7 +2,7 @@
   <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
     <h2 class="text-3xl font-bold text-neutral-dark">Relaciones y Crías</h2>
     <button (click)="isCriaModalOpen = true" class="btn-primary w-full sm:w-auto">
-      Registrar Nueva Cría
+      Registrar Relación
     </button>
   </div>
 
@@ -26,8 +26,8 @@
     (editRelationshipRequest)="onEditRelationshipRequest($event)">
   </app-relationship-viewer>
 
-  <!-- Modal para registrar nueva cría -->
-  <app-modal [isOpen]="isCriaModalOpen" title="Registrar Nueva Cría" (close)="isCriaModalOpen = false">
+  <!-- Se añade size="4xl" para hacer el modal más grande -->
+  <app-modal [isOpen]="isCriaModalOpen" title="Registrar Nueva Relación Familiar" (close)="isCriaModalOpen = false" size="4xl">
     <app-cria-form
       [todosLosAnimales]="todosLosAnimales"
       [pelajes]="pelajes"
@@ -36,7 +36,6 @@
     </app-cria-form>
   </app-modal>
 
-  <!-- NUEVO: Modal para editar una relación -->
   <app-modal [isOpen]="isEditRelationshipModalOpen" title="Cambiar Relación de Madre" (close)="isEditRelationshipModalOpen = false">
     <app-edit-relationship-form
       *ngIf="animalToEditRelationship"

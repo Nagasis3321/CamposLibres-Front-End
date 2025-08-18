@@ -1,16 +1,11 @@
-<!-- Contenedor del modal con fondo oscuro semitransparente -->
-<div *ngIf="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="close.emit()">
-    <!-- Contenido del modal -->
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4" (click)="$event.stopPropagation()">
-      <!-- Cabecera del Modal -->
-      <div class="flex justify-between items-center p-4 border-b">
-        <h3 class="text-xl font-semibold text-neutral-dark">{{ title }}</h3>
-        <button (click)="close.emit()" class="text-gray-400 hover:text-gray-600">&times;</button>
-      </div>
-      <!-- Cuerpo del Modal (Contenido Proyectado) -->
-      <div class="p-6">
-        <ng-content></ng-content>
-      </div>
+<div *ngIf="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4" (click)="close.emit()">
+  <div class="bg-white rounded-lg shadow-xl w-full mx-auto" [ngClass]="sizeClass" (click)="$event.stopPropagation()">
+    <div class="flex justify-between items-center p-4 border-b">
+      <h3 class="text-xl font-semibold text-neutral-dark">{{ title }}</h3>
+      <button (click)="close.emit()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+    </div>
+    <div class="p-4 sm:p-6">
+      <ng-content></ng-content>
     </div>
   </div>
-  
+</div>

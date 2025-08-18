@@ -1,72 +1,71 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { forkJoin, map, Observable } from 'rxjs';
-
+import { forkJoin } from 'rxjs';
 import { AnimalService } from '../../shared/services/animal.service';
 import { CampanaService } from '../../shared/services/campana.service';
-
 import { StatCardComponent } from './components/stat-card/stat-card.component';
 import { SummaryTableComponent, ResumenDueno } from './components/summary-table/summary-table.component';
 import { Animal } from '../../shared/models/animal.model';
+import { GroupService } from '../../shared/services/group.service';
+import { AuthService } from '../../core/services/auth.service';
+import { Campana } from '../../shared/models/campana.model'; // Importar Campana
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, StatCardComponent, SummaryTableComponent],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
-  // Inyección de servicios
   private animalService = inject(AnimalService);
   private campanaService = inject(CampanaService);
+  private groupService = inject(GroupService);
+  private authService = inject(AuthService);
 
-  // Propiedades para las tarjetas de estadísticas
   totalAnimales = 0;
   animalesSinCaravana = 0;
   campanasActivas = 0;
-
-  // Propiedad para la tabla de resumen
+  totalGrupos = 0;
   resumenPorDueno: ResumenDueno[] = [];
-
   isLoading = true;
 
   ngOnInit(): void {
-    // Usamos forkJoin para esperar a que ambas llamadas a los servicios terminen.
+    const currentUser = this.authService.currentUserValue;
+    if (!currentUser) return;
+
     forkJoin({
-      animales: this.animalService.getAnimales(),
-      campanas: this.campanaService.getCampanas()
-    }).subscribe(({ animales, campanas }) => {
-      // Una vez que tenemos los datos, procesamos las estadísticas.
-      this.totalAnimales = animales.length;
+      animalesResponse: this.animalService.getAnimales(1, 1000),
+      // *** CORRECCIÓN DE MÉTODO Y TIPO ***
+      campanas: this.campanaService.getCampaigns({ groupId: null }), // Se usa getCampaigns
+      grupos: this.groupService.getMyGroups() 
+    }).subscribe(({ animalesResponse, campanas, grupos }) => {
+      const animales = animalesResponse.data;
+      this.totalAnimales = animalesResponse.total;
       this.animalesSinCaravana = animales.filter(a => !a.caravana || a.caravana.trim() === '').length;
-      this.campanasActivas = campanas.filter(c => c.estado === 'Pendiente Carga').length;
-
-      // Procesamos los datos para la tabla de resumen.
+      // *** CORRECCIÓN DE LÓGICA ***
+      // El estado ya no existe, esta lógica se puede adaptar o eliminar.
+      // Por ahora, contamos todas las campañas.
+      this.campanasActivas = campanas.length; 
+      this.totalGrupos = grupos.length;
       this.resumenPorDueno = this.procesarResumenPorDueno(animales);
-
       this.isLoading = false;
     });
   }
 
   private procesarResumenPorDueno(animales: Animal[]): ResumenDueno[] {
     const resumen = animales.reduce((acc, animal) => {
-      // Si el dueño no está en el acumulador, lo inicializamos.
-      if (!acc[animal.dueno]) {
-        acc[animal.dueno] = { total: 0, tipos: {}, sinCaravana: 0 };
+      const duenoNombre = animal.dueno?.nombre || 'Desconocido';
+      if (!acc[duenoNombre]) {
+        acc[duenoNombre] = { total: 0, tipos: {}, sinCaravana: 0 };
       }
-
-      // Incrementamos los contadores.
-      acc[animal.dueno].total++;
-      acc[animal.dueno].tipos[animal.tipoAnimal] = (acc[animal.dueno].tipos[animal.tipoAnimal] || 0) + 1;
+      acc[duenoNombre].total++;
+      acc[duenoNombre].tipos[animal.tipoAnimal] = (acc[duenoNombre].tipos[animal.tipoAnimal] || 0) + 1;
       if (!animal.caravana || animal.caravana.trim() === '') {
-        acc[animal.dueno].sinCaravana++;
+        acc[duenoNombre].sinCaravana++;
       }
-
       return acc;
     }, {} as Record<string, { total: number; tipos: Record<string, number>; sinCaravana: number }>);
 
-    // Convertimos el objeto procesado en un array para la tabla.
     return Object.entries(resumen).map(([dueno, data]) => ({
       dueno,
       total: data.total,

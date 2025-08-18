@@ -1,43 +1,32 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
-import { Campana } from '../models/campana.model';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Campana, CampaignDto } from '../models/campana.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CampanaService {
-  private campanasDeEjemplo: Campana[] = [
-    { 
-      idCampana: 'CAMP001', 
-      nombreCampana: 'Vitaminas Invierno 2024', 
-      fechaCampana: '2024-07-15', 
-      productoUtilizado: 'Complejo Vitamínico XYZ', 
-      loteProducto: 'VXL001', 
-      responsableCarga: 'Dr. Vet Ejemplo', 
-      obsCampana: 'Aplicar a todo el rodeo.', 
-      estado: 'Pendiente Carga', 
-      animalesAgregados: [] 
-    },
-    { 
-      idCampana: 'CAMP002', 
-      nombreCampana: 'Aftosa Primavera 2023', 
-      fechaCampana: '2023-10-05', 
-      productoUtilizado: 'Vacuna Aftosa Oil', 
-      loteProducto: 'AFTL088', 
-      responsableCarga: 'Téc. Ganadero', 
-      obsCampana: 'Rodeo general.', 
-      estado: 'Completada', 
-      animalesAgregados: [
-        {id: 'A001', caravana: '1515'}, 
-        {id: 'A004', caravana: '4574'}
-      ] 
-    }
-  ];
+  private http = inject(HttpClient);
+  private apiUrl = 'http://localhost:3000/campaigns';
 
-  /**
-   * Devuelve la lista completa de campañas como un Observable.
-   */
-  getCampanas(): Observable<Campana[]> {
-    return of(this.campanasDeEjemplo).pipe(delay(500));
+  getCampaigns(context: { groupId?: string | null }): Observable<Campana[]> {
+    let params = new HttpParams();
+    if (context.groupId) {
+      params = params.set('groupId', context.groupId);
+    }
+    return this.http.get<Campana[]>(this.apiUrl, { params });
+  }
+
+  createCampaign(campaignData: CampaignDto): Observable<Campana> {
+    return this.http.post<Campana>(this.apiUrl, campaignData);
+  }
+
+  updateCampaign(id: string, campaignData: Partial<CampaignDto>): Observable<Campana> {
+    return this.http.patch<Campana>(`${this.apiUrl}/${id}`, campaignData);
+  }
+
+  deleteCampaign(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

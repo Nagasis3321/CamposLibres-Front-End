@@ -1,12 +1,36 @@
+<!-- Vista para un animal específico -->
 <div *ngIf="animalConsultado; else vistaTodasRelaciones" class="card">
-  <div class="flex justify-between items-start">
-    <h3 class="text-xl font-semibold mb-4">
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+    <h3 class="text-xl font-semibold mb-2">
       Relaciones de: 
       <span class="text-primary">{{ animalConsultado.caravana || '(Sin Caravana)' }}</span>
     </h3>
-    <button (click)="editRelationshipRequest.emit(animalConsultado)" class="btn-secondary text-sm">Cambiar Relaciones</button>
+    <button (click)="editRelationshipRequest.emit(animalConsultado)" class="btn-secondary text-sm w-full sm:w-auto">Cambiar Relaciones</button>
   </div>
-  <!-- ... (resto del HTML de la vista individual sin cambios) ... -->
+  <div class="space-y-6 mt-4">
+    <div>
+      <h4 class="text-lg font-medium text-neutral-dark">Madre</h4>
+      <div *ngIf="madre; else noMadre" class="mt-2 p-3 bg-neutral-light rounded-md text-sm space-y-1">
+        <p><strong>Caravana:</strong> {{ madre.caravana || 'S/C' }}</p>
+        <p><strong>Tipo:</strong> {{ madre.tipoAnimal }}</p>
+        <p><strong>Pelaje:</strong> {{ madre.pelaje }}</p>
+        <p><strong>Dueño:</strong> {{ madre.dueno?.nombre || 'N/A' }}</p>
+      </div>
+      <ng-template #noMadre><p class="text-sm text-neutral italic mt-2">No tiene madre registrada.</p></ng-template>
+    </div>
+    <div *ngIf="animalConsultado.sexo === 'Hembra'">
+      <h4 class="text-lg font-medium text-neutral-dark">Crías Registradas ({{ crias.length }})</h4>
+      <ul *ngIf="crias.length > 0; else noCrias" class="mt-2 space-y-3 text-sm">
+        <li *ngFor="let cria of crias" class="p-3 border rounded-md">
+          <p><strong>Caravana:</strong> {{ cria.caravana || 'S/C' }}</p>
+          <p><strong>Tipo:</strong> {{ cria.tipoAnimal }}</p>
+          <p><strong>Pelaje:</strong> {{ cria.pelaje }}</p>
+          <p><strong>Dueño:</strong> {{ cria.dueno?.nombre || 'N/A' }}</p>
+        </li>
+      </ul>
+      <ng-template #noCrias><p class="text-sm text-neutral italic mt-2">No se encontraron crías para este animal.</p></ng-template>
+    </div>
+  </div>
 </div>
 
 <!-- Vista para todas las relaciones -->
@@ -23,13 +47,11 @@
         </div>
         <ul class="list-disc pl-6 mt-2 text-sm text-neutral-dark space-y-1">
           <li *ngFor="let cria of relacion.crias">
-            <strong>{{ cria.caravana || '(Sin Caravana)' }}</strong> - {{ cria.tipoAnimal }} {{ cria.pelaje }}
+            <strong>{{ cria.caravana || '(S/C)' }}</strong> - {{ cria.tipoAnimal }}, {{ cria.pelaje }}, {{ cria.dueno?.nombre || 'N/A' }}
           </li>
         </ul>
       </div>
     </div>
-    <ng-template #noHayRelaciones>
-      <p class="text-center text-neutral italic py-4">No hay relaciones familiares registradas.</p>
-    </ng-template>
+    <ng-template #noHayRelaciones><p class="text-center text-neutral italic py-4">No hay relaciones familiares registradas.</p></ng-template>
   </div>
 </ng-template>

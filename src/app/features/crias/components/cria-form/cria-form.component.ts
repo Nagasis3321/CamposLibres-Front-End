@@ -1,91 +1,148 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Animal } from '../../../../shared/models/animal.model';
+
+type FormMode = 'create' | 'select';
+type ParentType = 'madre' | 'padre';
 
 @Component({
   selector: 'app-cria-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './cria-form.component.html',
-  styleUrls: ['./cria-form.component.css']
 })
-export class CriaFormComponent {
+export class CriaFormComponent implements OnInit {
   @Input() todosLosAnimales: Animal[] = [];
   @Input() pelajes: string[] = [];
-  @Output() save = new EventEmitter<Partial<Animal>>();
+  @Output() save = new EventEmitter<{ motherId: string | null, fatherId: string | null, criaData: Partial<Animal> | null, selectedCriaId: string | null }>();
   @Output() cancel = new EventEmitter<void>();
 
   criaForm: FormGroup;
-  madreEncontrada: Animal | null = null;
-  errorBusquedaMadre: string | null = null;
-  posiblesMadres: Animal[] = []; // Almacena la lista de madres para seleccionar
+  mode: FormMode = 'select';
+
 
   private fb = inject(FormBuilder);
 
   constructor() {
     this.criaForm = this.fb.group({
-      caravanaMadre: ['', Validators.required],
-      idMadre: [null, Validators.required],
-      caravana: [''],
-      pelaje: ['', Validators.required],
-      sexo: ['Hembra', Validators.required],
-      fechaNacimiento: ['', Validators.required],
-      descripcion: [''],
+      cria: this.fb.group({
+        caravana: [''],
+        pelaje: [''],
+        sexo: ['Hembra'],
+        fechaNacimiento: [''],
+        existingCriaId: [null, Validators.required]
+      })
     });
   }
 
-  buscarMadre(): void {
-    const caravanaMadre = this.criaForm.get('caravanaMadre')?.value.trim().toLowerCase();
-    this.madreEncontrada = null;
-    this.errorBusquedaMadre = null;
-    this.criaForm.get('idMadre')?.reset();
-    this.posiblesMadres = [];
+  parentSearchControl = this.fb.control('');
+  searchResults: Animal[] = [];
+  animalParaAsignar: Animal | null = null;
+  madreSeleccionada: Animal | null = null;
+  padreSeleccionado: Animal | null = null;
+  
 
-    // Si la búsqueda está vacía, muestra todas las madres posibles.
-    if (!caravanaMadre) {
-      this.posiblesMadres = this.todosLosAnimales.filter(a => a.sexo === 'Hembra');
-      if (this.posiblesMadres.length === 0) {
-        this.errorBusquedaMadre = 'No se encontraron animales hembra en el sistema.';
-      }
-      return;
-    }
-
-    // Si hay texto, busca una coincidencia exacta.
-    const madre = this.todosLosAnimales.find(
-      a => a.sexo === 'Hembra' && a.caravana?.toLowerCase() === caravanaMadre
-    );
-
-    if (madre) {
-      this.seleccionarMadre(madre);
-    } else {
-      this.errorBusquedaMadre = 'No se encontró una madre con esa caravana.';
-    }
+  ngOnInit(): void {
+    this.setMode('select');
+    this.buscarAnimales();
   }
 
-  // Método para manejar la selección de una madre de la lista.
-  seleccionarMadre(madre: Animal): void {
-    this.madreEncontrada = madre;
-    this.criaForm.get('idMadre')?.setValue(madre.id);
-    this.criaForm.get('caravanaMadre')?.setValue(madre.caravana);
-    this.posiblesMadres = []; // Oculta la lista después de seleccionar
-    this.errorBusquedaMadre = null;
+  setMode(newMode: FormMode): void {
+    this.mode = newMode;
+    const criaGroup = this.criaForm.get('cria') as FormGroup;
+    
+    // Usamos setTimeout para evitar el error ExpressionChangedAfterItHasBeenCheckedError
+    setTimeout(() => {
+      if (newMode === 'create') {
+        criaGroup.get('pelaje')?.setValidators([Validators.required]);
+        criaGroup.get('sexo')?.setValidators([Validators.required]);
+        criaGroup.get('fechaNacimiento')?.setValidators([Validators.required]);
+        criaGroup.get('existingCriaId')?.clearValidators();
+        criaGroup.get('existingCriaId')?.setValue(null);
+      } else {
+        criaGroup.get('pelaje')?.clearValidators();
+        criaGroup.get('sexo')?.clearValidators();
+        criaGroup.get('fechaNacimiento')?.clearValidators();
+        criaGroup.get('existingCriaId')?.setValidators([Validators.required]);
+      }
+      criaGroup.updateValueAndValidity();
+    });
+  }
+
+  buscarAnimales(): void {
+    const searchTerm = this.parentSearchControl.value?.trim().toLowerCase() || '';
+    if (searchTerm === '') {
+      this.searchResults = [...this.todosLosAnimales];
+      return;
+    }
+    this.searchResults = this.todosLosAnimales.filter(
+      a => a.caravana?.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  seleccionarParaAsignar(animal: Animal): void {
+    if (this.madreSeleccionada?.id === animal.id || this.padreSeleccionado?.id === animal.id) {
+      return;
+    }
+    this.animalParaAsignar = animal;
+  }
+
+  asignarParent(): void {
+    if (!this.animalParaAsignar) return;
+
+    if (this.animalParaAsignar.sexo === 'Hembra') {
+      this.madreSeleccionada = this.animalParaAsignar;
+    } else if (this.animalParaAsignar.sexo === 'Macho') {
+      this.padreSeleccionado = this.animalParaAsignar;
+    }
+    
+    this.animalParaAsignar = null;
+  }
+
+  removerParent(tipo: 'madre' | 'padre'): void {
+    if (tipo === 'madre') this.madreSeleccionada = null;
+    else this.padreSeleccionado = null;
   }
 
   onSubmit(): void {
-    this.criaForm.markAllAsTouched();
-    if (this.criaForm.invalid) {
+    if (!this.madreSeleccionada && !this.padreSeleccionado) {
+      alert('Debe seleccionar al menos una madre o un padre.');
       return;
     }
-    
-    const { caravanaMadre, ...animalData } = this.criaForm.value;
 
-    const nuevaCria: Partial<Animal> = {
-      ...animalData,
-      tipoAnimal: 'Ternero/a',
-      dueno: this.madreEncontrada?.dueno
+    if (this.criaForm.invalid) {
+      this.criaForm.markAllAsTouched();
+      return;
+    }
+
+    let criaData: Partial<Animal> | null = null;
+    if (this.mode === 'create') {
+      const formValue = this.criaForm.get('cria')?.value;
+      
+      // *** LÓGICA CORREGIDA ***
+      // Asigna 'Ternero' o 'Ternera' basado en el sexo seleccionado.
+      // NOTA: Para que esto funcione sin errores de TypeScript, debes asegurarte
+      // de que tu modelo 'Animal' en 'animal.model.ts' incluya 'Ternero' y 'Ternera'
+      // como valores válidos para la propiedad 'tipoAnimal'.
+      const tipoAnimal = formValue.sexo === 'Hembra' ? 'Ternera' : 'Ternero';
+      
+      criaData = {
+        caravana: formValue.caravana,
+        pelaje: formValue.pelaje,
+        sexo: formValue.sexo,
+        fechaNacimiento: formValue.fechaNacimiento,
+        tipoAnimal: tipoAnimal
+      };
+    }
+
+    const output = {
+      motherId: this.madreSeleccionada?.id || null,
+      fatherId: this.padreSeleccionado?.id || null,
+      criaData: criaData,
+      selectedCriaId: this.mode === 'select' ? this.criaForm.get('cria.existingCriaId')?.value : null
     };
-
-    this.save.emit(nuevaCria);
+    
+    this.save.emit(output);
   }
 }

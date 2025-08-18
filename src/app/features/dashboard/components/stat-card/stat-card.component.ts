@@ -5,7 +5,6 @@ import { Component, Input } from '@angular/core';
   standalone: true,
   imports: [],
   templateUrl: './stat-card.component.html',
-  styleUrl: './stat-card.component.css'
 })
 export class StatCardComponent {
   @Input() title: string = 'Título';

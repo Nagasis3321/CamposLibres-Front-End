@@ -1,15 +1,8 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from '../services/auth.service';
 
-/**
- * Interceptor funcional que añadirá el token de autenticación a las peticiones salientes.
- */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const token = localStorage.getItem('authToken'); // O authService.getToken()
+  const token = localStorage.getItem('authToken');
 
-  // Si hay un token, clonamos la petición y añadimos la cabecera 'Authorization'.
   if (token) {
     const clonedReq = req.clone({
       setHeaders: {
@@ -19,6 +12,5 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(clonedReq);
   }
 
-  // Si no hay token, la petición continúa sin modificaciones.
   return next(req);
 };

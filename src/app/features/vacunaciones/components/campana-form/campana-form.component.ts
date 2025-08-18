@@ -8,7 +8,6 @@ import { Campana } from '../../../../shared/models/campana.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './campana-form.component.html',
-  styleUrls: ['./campana-form.component.css']
 })
 export class CampanaFormComponent {
   @Output() save = new EventEmitter<Partial<Campana>>();
@@ -19,16 +18,18 @@ export class CampanaFormComponent {
 
   constructor() {
     this.campanaForm = this.fb.group({
-      nombreCampana: ['', Validators.required],
-      fechaCampana: ['', Validators.required],
-      productoUtilizado: [''],
-      obsCampana: ['']
+      nombre: ['', Validators.required],
+      fecha: ['', Validators.required],
+      productosUtilizados: [''],
+      observaciones: ['']
     });
   }
 
   onSubmit(): void {
-    this.campanaForm.markAllAsTouched();
-    if (this.campanaForm.invalid) return;
+    if (this.campanaForm.invalid) {
+      this.campanaForm.markAllAsTouched();
+      return;
+    }
     this.save.emit(this.campanaForm.value);
   }
 }

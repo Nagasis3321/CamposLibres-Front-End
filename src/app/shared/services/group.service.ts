@@ -1,103 +1,47 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, delay, throwError, switchMap } from 'rxjs';
-import { Group, UserRole } from '../models/group.model';
-import { User } from '../models/user.model';
-import { UserService } from './user.service';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Group, HydratedGroup, UserRole } from '../models/group.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GroupService {
-  private userService = inject(UserService);
+  private http = inject(HttpClient);
+  private apiUrl = 'http://localhost:3000/groups';
 
-  private gruposDeEjemplo: Group[] = [
-    {
-      id: 'g001',
-      nombre: 'Cooperativa "El Progreso"',
-      propietarioId: 'u001',
-      miembros: [
-        { userId: 'u001', role: 'Propietario' },
-        { userId: 'u002', role: 'Administrador' },
-        { userId: 'u003', role: 'Miembro' },
-      ]
-    },
-    {
-      id: 'g002',
-      nombre: 'Familia Terleski',
-      propietarioId: 'u004',
-      miembros: [
-        { userId: 'u004', role: 'Propietario' },
-        { userId: 'u001', role: 'Miembro' },
-      ]
-    }
-  ];
-
-  getGruposByUserId(userId: string): Observable<Group[]> {
-    const grupos = this.gruposDeEjemplo.filter(g => g.miembros.some(m => m.userId === userId));
-    return of(grupos).pipe(delay(500));
+  getMyGroups(): Observable<HydratedGroup[]> {
+    return this.http.get<HydratedGroup[]>(this.apiUrl);
   }
 
-  createGroup(nombre: string, creador: User): Observable<Group> {
-    const nuevoGrupo: Group = {
-      id: `g${Date.now()}`,
-      nombre: nombre,
-      propietarioId: creador.id,
-      miembros: [{ userId: creador.id, role: 'Propietario' }]
-    };
-    this.gruposDeEjemplo.push(nuevoGrupo);
-    return of(nuevoGrupo).pipe(delay(500));
+  /**
+   * MÉTODO AÑADIDO: Obtiene los detalles de un solo grupo por su ID.
+   */
+  findOne(id: string): Observable<HydratedGroup> {
+    return this.http.get<HydratedGroup>(`${this.apiUrl}/${id}`);
+  }
+
+  createGroup(nombre: string): Observable<Group> {
+    return this.http.post<Group>(this.apiUrl, { nombre });
   }
   
   updateGroup(groupId: string, nombre: string): Observable<Group> {
-    const group = this.gruposDeEjemplo.find(g => g.id === groupId);
-    if (!group) return throwError(() => new Error('Grupo no encontrado.'));
-    group.nombre = nombre;
-    return of(group).pipe(delay(500));
+    return this.http.patch<Group>(`${this.apiUrl}/${groupId}`, { nombre });
   }
 
-  deleteGroup(groupId: string): Observable<{ success: boolean }> {
-    this.gruposDeEjemplo = this.gruposDeEjemplo.filter(g => g.id !== groupId);
-    return of({ success: true }).pipe(delay(500));
+  deleteGroup(groupId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${groupId}`);
   }
 
-  inviteMember(groupId: string, email: string, role: UserRole): Observable<Group> {
-    return this.userService.findUserByEmail(email).pipe(
-      switchMap(userToAdd => {
-        if (!userToAdd) {
-          return throwError(() => new Error(`Usuario con email ${email} no encontrado.`));
-        }
-
-        const group = this.gruposDeEjemplo.find(g => g.id === groupId);
-        if (!group) {
-          return throwError(() => new Error('Grupo no encontrado.'));
-        }
-
-        if (group.miembros.some(m => m.userId === userToAdd.id)) {
-          return throwError(() => new Error('El usuario ya es miembro de este grupo.'));
-        }
-
-        group.miembros.push({ userId: userToAdd.id, role: role });
-        return of(group).pipe(delay(500));
-      })
-    );
+  inviteMember(groupId: string, email: string, role: UserRole): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${groupId}/members`, { email, role });
   }
 
-  removeMember(groupId: string, userId: string): Observable<Group> {
-    const group = this.gruposDeEjemplo.find(g => g.id === groupId);
-    if (!group) return throwError(() => new Error('Grupo no encontrado.'));
-
-    group.miembros = group.miembros.filter(m => m.userId !== userId);
-    return of(group).pipe(delay(500));
+  removeMember(groupId: string, userId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${groupId}/members/${userId}`);
   }
 
-  updateMemberRole(groupId: string, userId: string, newRole: UserRole): Observable<Group> {
-    const group = this.gruposDeEjemplo.find(g => g.id === groupId);
-    if (!group) return throwError(() => new Error('Grupo no encontrado.'));
-
-    const member = group.miembros.find(m => m.userId === userId);
-    if (!member) return throwError(() => new Error('Miembro no encontrado.'));
-    
-    member.role = newRole;
-    return of(group).pipe(delay(500));
+  updateMemberRole(groupId: string, userId: string, newRole: UserRole): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${groupId}/members/${userId}`, { role: newRole });
   }
 }

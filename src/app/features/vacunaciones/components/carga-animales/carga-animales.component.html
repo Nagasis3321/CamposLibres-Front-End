@@ -1,88 +1,65 @@
-<!-- Overlay para el fondo oscuro -->
-<div class="modal-overlay" (click)="cancel.emit()"></div>
-
-<!-- Contenedor principal del formulario -->
-<div class="form-container-large">
-  <div class="form-header">
-    <h2>Cargar Animales: {{ campana?.nombreCampana }}</h2>
-    <button (click)="cancel.emit()" class="btn-close">&times;</button>
-  </div>
-
-  <!-- Cuerpo del formulario con scroll interno -->
-  <div class="form-body">
-    <!-- Columna de Búsqueda -->
-    <div class="columna-busqueda">
-      <h4 class="font-semibold">1. Buscar Animales</h4>
-      <form [formGroup]="searchForm" class="search-form">
-        <div>
-          <label>Caravana</label>
-          <input formControlName="caravana" type="text" class="form-input">
-        </div>
-        <div class="autocomplete-container">
-          <label>Pelaje</label>
-          <input formControlName="pelaje" type="text" class="form-input" (focus)="mostrarSugerenciasPelaje = true" (blur)="mostrarSugerenciasPelaje = false">
-          <div *ngIf="mostrarSugerenciasPelaje && (pelajesSugeridos$ | async) as sugerencias" class="suggestions-list">
-            <div *ngFor="let pelaje of sugerencias" (mousedown)="seleccionarPelaje(pelaje)" class="suggestion-item">
-              {{ pelaje }}
-            </div>
+<div class="flex flex-col max-h-[80vh]">
+  <div class="overflow-y-auto flex-grow pr-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Columna de Búsqueda y Resultados -->
+    <div class="flex flex-col space-y-4">
+      <div class="card p-4">
+        <h4 class="font-semibold mb-2">1. Buscar Animales</h4>
+        <form [formGroup]="searchForm" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <input formControlName="caravana" type="text" placeholder="Buscar por caravana..." class="form-input">
+          <select formControlName="duenoId" class="form-input">
+            <option value="">Todos los Dueños</option>
+            <option *ngFor="let dueno of possibleOwners" [value]="dueno.id">{{ dueno.nombre }}</option>
+          </select>
+        </form>
+      </div>
+      <div class="flex-grow border rounded-md p-2 overflow-y-auto">
+        <p class="text-xs text-gray-500 mb-2">Resultados (clic para agregar):</p>
+        <div *ngFor="let animal of animalesDisponibles" (click)="agregarAnimal(animal)"
+             class="p-3 hover:bg-blue-50 cursor-pointer rounded-md text-sm border-b">
+          <div class="flex justify-between items-center">
+            <p class="font-semibold text-gray-800">Caravana: {{ animal.caravana || 'S/C' }}</p>
+            <span class="text-xs font-medium text-primary">Agregar</span>
+          </div>
+          <div class="flex flex-wrap gap-x-4 text-xs text-gray-500 mt-1">
+            <span>Dueño: {{ animal.dueno?.nombre || 'N/A' }}</span>
+            <span>Tipo: {{ animal.tipoAnimal }}</span>
+            <span>Pelaje: {{ animal.pelaje }}</span>
+            <span>Sexo: {{ animal.sexo }}</span>
           </div>
         </div>
-        <div>
-          <label>Tipo</label>
-          <select formControlName="tipoAnimal" class="form-input">
-            <option value="">Todos</option>
-            <option>Vaca</option>
-            <option>Vaquilla</option>
-            <option>Ternero/a</option>
-            <option>Novillo</option>
-            <option>Toro</option>
-          </select>
-        </div>
-        <div>
-          <label>Sexo</label>
-          <select formControlName="sexo" class="form-input">
-            <option value="">Todos</option>
-            <option>Hembra</option>
-            <option>Macho</option>
-          </select>
-        </div>
-        <div class="col-span-2">
-            <label>Dueño</label>
-            <select formControlName="dueno" class="form-input">
-                <option value="">Todos</option>
-                <option *ngFor="let dueno of duenosUnicos" [value]="dueno">{{ dueno }}</option>
-            </select>
-        </div>
-      </form>
-      <div class="resultados-busqueda">
-        <p class="resultados-titulo">Resultados (clic para agregar):</p>
-        <div *ngFor="let animal of animalesDisponibles" (click)="agregarAnimal(animal)" class="resultado-item">
-          <strong>{{ animal.caravana || 'S/C' }}</strong> - {{ animal.tipoAnimal }} - {{ animal.pelaje }} - {{ animal['dueno']|| 'Sin dueño' }}
-        </div>
-        <p *ngIf="animalesDisponibles.length === 0" class="no-resultados">No hay resultados.</p>
+        <p *ngIf="animalesDisponibles.length === 0" class="text-sm text-gray-400 italic p-2">No hay resultados.</p>
       </div>
     </div>
-  
+
     <!-- Columna de Animales Agregados -->
-    <div class="columna-agregados">
-      <h4 class="font-semibold mb-4">2. Animales en Campaña ({{ animalesEnCampana.length }})</h4>
-      <div class="lista-agregados">
-        <div *ngFor="let animal of animalesEnCampana" class="agregado-item">
-          <div class="info-animal">
-            <strong>{{ animal.caravana || 'S/C' }}</strong>
-            <span>{{ animal.tipoAnimal }} - {{ animal.pelaje }}</span>
-            <span class="dueño-animal">{{ animal['dueno'] || 'Sin dueño' }}</span>
-          </div>
-          <button (click)="quitarAnimal(animal)" class="btn-quitar">Quitar</button>
+    <div class="flex flex-col">
+      <div class="flex justify-between items-center mb-4">
+        <h4 class="font-semibold">2. Animales en Campaña ({{ animalesEnCampana.length }})</h4>
+        <button (click)="isAnimalFormOpen = true" class="btn-secondary text-xs">+ Animal no registrado</button>
+      </div>
+      <div class="flex-grow border rounded-md p-2 overflow-y-auto space-y-1">
+        <div *ngFor="let animal of animalesEnCampana"
+             class="flex justify-between items-center p-2 bg-white rounded shadow-sm text-sm border">
+          <span><strong>{{ animal.caravana || 'S/C' }}</strong> - {{ animal.dueno?.nombre }}</span>
+          <button (click)="quitarAnimal(animal)" class="text-danger text-xs font-medium p-1 hover:underline">Quitar</button>
         </div>
-        <p *ngIf="animalesEnCampana.length === 0" class="no-resultados">Ningún animal agregado aún.</p>
+        <p *ngIf="animalesEnCampana.length === 0" class="text-sm text-gray-400 italic p-2">Ningún animal agregado.</p>
       </div>
     </div>
   </div>
 
-  <!-- Pie del formulario -->
-  <div class="form-footer">
+  <div class="flex justify-end space-x-3 pt-6 mt-auto flex-shrink-0">
     <button type="button" (click)="cancel.emit()" class="btn-secondary">Cancelar</button>
-    <button type="button" (click)="finalizarCarga()" class="btn-primary">Finalizar y Guardar Campaña</button>
+    <button type="button" (click)="finalizarCarga()" class="btn-primary">Finalizar y Guardar</button>
   </div>
 </div>
+
+<!-- Modal para crear un animal "sobre la marcha" -->
+<app-modal [isOpen]="isAnimalFormOpen" title="Registrar Nuevo Animal" (close)="isAnimalFormOpen = false" size="2xl">
+  <app-animal-form
+    [duenos]="possibleOwners"
+    [pelajes]="pelajes" 
+    (save)="onSaveNewAnimal($event)"
+    (cancel)="isAnimalFormOpen = false">
+  </app-animal-form>
+</app-modal>

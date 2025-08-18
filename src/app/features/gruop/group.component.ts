@@ -6,15 +6,16 @@ import { User } from '../../shared/models/user.model';
 import { GroupService } from '../../shared/services/group.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { MemberManagerComponent } from './components/member-manager/member-manager.component';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { GroupFormComponent } from './components/group-form/group-form.component';
+import { GroupListComponent } from './components/group-list/group-list.component';
+import { MemberManagerComponent } from './components/member-manager/member-manager.component';
 import { UserService } from '../../shared/services/user.service';
 
 @Component({
   selector: 'app-grupos',
   standalone: true,
-  imports: [CommonModule, MemberManagerComponent, ModalComponent, GroupFormComponent],
+  imports: [CommonModule, ModalComponent, GroupFormComponent, GroupListComponent, MemberManagerComponent],
   templateUrl: './group.component.html',
 })
 export class GroupComponent implements OnInit {
@@ -23,8 +24,8 @@ export class GroupComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private userService = inject(UserService);
 
-  private groupsSubject = new BehaviorSubject<Group[]>([]);
-  userGroups$: Observable<Group[]> = this.groupsSubject.asObservable();
+  private groupsSubject = new BehaviorSubject<HydratedGroup[]>([]);
+  userGroups$: Observable<HydratedGroup[]> = this.groupsSubject.asObservable();
   
   allUsers: User[] = [];
   selectedGroup: HydratedGroup | null = null;
@@ -32,82 +33,76 @@ export class GroupComponent implements OnInit {
   
   isModalOpen = false;
   modalMode: 'create' | 'edit' = 'create';
+  groupToEdit: Group | null = null;
 
   ngOnInit(): void {
-    const currentUser = this.authService.currentUserValue;
-    if (!currentUser) {
+    const user = this.authService.currentUserValue;
+    if (!user) {
       this.notificationService.showError('Error de autenticación. Por favor, inicie sesión de nuevo.');
       this.authService.logout();
       return;
     }
-    this.currentUser = currentUser;
+    this.currentUser = user;
 
-    // Carga los datos iniciales
+    // Ahora el forkJoin solo espera observables que sí se completan.
     forkJoin({
       users: this.userService.getUsers(),
-      groups: this.groupService.getGruposByUserId(this.currentUser.id)
+      groups: this.groupService.getMyGroups() 
     }).subscribe(({ users, groups }) => {
       this.allUsers = users;
       this.groupsSubject.next(groups);
     });
   }
 
-  selectGroup(group: Group): void {
-    this.selectedGroup = this.hydrateGroup(group);
+  loadGroups(): void {
+    // **CORRECCIÓN:** Se usa getMyGroups()
+    this.groupService.getMyGroups().subscribe(groups => {
+      this.groupsSubject.next(groups);
+      // Si un grupo estaba seleccionado, lo refrescamos para mantener la vista actualizada.
+      if (this.selectedGroup) {
+        const updatedSelectedGroup = groups.find(g => g.id === this.selectedGroup!.id);
+        this.selectedGroup = updatedSelectedGroup || null;
+      }
+    });
   }
 
-  private hydrateGroup(group: Group): HydratedGroup {
-    const miembros: HydratedMember[] = group.miembros.map(memberRef => {
-      const user = this.allUsers.find(u => u.id === memberRef.userId);
-      return {
-        userId: memberRef.userId,
-        nombre: user?.nombre || 'Desconocido',
-        email: user?.email || 'N/A',
-        role: memberRef.role
-      };
-    });
-    return { ...group, miembros };
+  selectGroup(group: HydratedGroup): void {
+    this.selectedGroup = group;
   }
 
   // --- Manejo de Modales ---
   openCreateModal(): void {
     this.modalMode = 'create';
+    this.groupToEdit = null;
     this.isModalOpen = true;
   }
 
-  openEditModal(): void {
-    if (!this.selectedGroup) return;
+  onEditRequest(group: Group): void {
     this.modalMode = 'edit';
+    this.groupToEdit = group;
     this.isModalOpen = true;
   }
 
   // --- Acciones de Grupo ---
   onSaveGroup(nombre: string): void {
-    if (this.modalMode === 'create') {
-      this.groupService.createGroup(nombre, this.currentUser).subscribe(newGroup => {
-        this.notificationService.showSuccess(`Grupo "${newGroup.nombre}" creado.`);
-        const currentGroups = this.groupsSubject.getValue();
-        this.groupsSubject.next([...currentGroups, newGroup]);
-        this.selectGroup(newGroup);
-      });
-    } else if (this.modalMode === 'edit' && this.selectedGroup) {
-      this.groupService.updateGroup(this.selectedGroup.id, nombre).subscribe(updatedGroup => {
-        this.notificationService.showSuccess(`Grupo "${updatedGroup.nombre}" actualizado.`);
-        this.updateGroupInList(updatedGroup);
-        this.selectGroup(updatedGroup);
-      });
-    }
-    this.isModalOpen = false;
+    const action = this.modalMode === 'create'
+      ? this.groupService.createGroup(nombre)
+      : this.groupService.updateGroup(this.groupToEdit!.id, nombre);
+
+    action.subscribe(() => {
+      const message = this.modalMode === 'create' ? 'creado' : 'actualizado';
+      this.notificationService.showSuccess(`Grupo "${nombre}" ${message}.`);
+      this.loadGroups(); // Recargamos la lista para reflejar el cambio.
+      this.isModalOpen = false;
+    });
   }
 
-  onDeleteGroup(): void {
-    if (!this.selectedGroup || !confirm(`¿Estás seguro de que quieres eliminar el grupo "${this.selectedGroup.nombre}"?`)) {
-      return;
-    }
-    this.groupService.deleteGroup(this.selectedGroup.id).subscribe(() => {
-      this.notificationService.showSuccess(`Grupo "${this.selectedGroup!.nombre}" eliminado.`);
-      const currentGroups = this.groupsSubject.getValue().filter(g => g.id !== this.selectedGroup!.id);
-      this.groupsSubject.next(currentGroups);
+  onDeleteRequest(group: Group): void {
+    if (!confirm(`¿Estás seguro de que quieres eliminar el grupo "${group.nombre}"?`)) return;
+    
+    this.groupService.deleteGroup(group.id).subscribe(() => {
+      this.notificationService.showSuccess(`Grupo "${group.nombre}" eliminado.`);
+      this.loadGroups();
       this.selectedGroup = null;
     });
   }
@@ -116,51 +111,27 @@ export class GroupComponent implements OnInit {
   onInviteMember(event: { email: string, role: UserRole }): void {
     if (!this.selectedGroup) return;
     this.groupService.inviteMember(this.selectedGroup.id, event.email, event.role).subscribe({
-      next: (updatedGroup) => {
+      next: () => {
         this.notificationService.showSuccess(`Invitación enviada a ${event.email}.`);
-        this.updateGroupInList(updatedGroup);
-        this.selectGroup(updatedGroup);
+        this.loadGroups();
       },
-      error: (err) => this.notificationService.showError(err.message)
+      error: (err) => this.notificationService.showError(err.error?.message || 'Error al invitar miembro.')
     });
   }
 
   onRemoveMember(member: HydratedMember): void {
     if (!this.selectedGroup) return;
-    this.groupService.removeMember(this.selectedGroup.id, member.userId).subscribe(updatedGroup => {
+    this.groupService.removeMember(this.selectedGroup.id, member.userId).subscribe(() => {
       this.notificationService.showSuccess(`Miembro ${member.nombre} eliminado.`);
-      this.updateGroupInList(updatedGroup);
-      this.selectGroup(updatedGroup);
+      this.loadGroups();
     });
   }
 
   onChangeRole(event: { member: HydratedMember, newRole: UserRole }): void {
     if (!this.selectedGroup) return;
-    this.groupService.updateMemberRole(this.selectedGroup.id, event.member.userId, event.newRole).subscribe(updatedGroup => {
-      this.notificationService.showSuccess(`Rol de ${event.member.nombre} actualizado a ${event.newRole}.`);
-      this.updateGroupInList(updatedGroup);
-      this.selectGroup(updatedGroup);
+    this.groupService.updateMemberRole(this.selectedGroup.id, event.member.userId, event.newRole).subscribe(() => {
+      this.notificationService.showSuccess(`Rol de ${event.member.nombre} actualizado.`);
+      this.loadGroups();
     });
-  }
-  
-  // --- Utilidades ---
-  private updateGroupInList(updatedGroup: Group): void {
-    const currentGroups = this.groupsSubject.getValue();
-    const index = currentGroups.findIndex(g => g.id === updatedGroup.id);
-    if (index > -1) {
-      currentGroups[index] = updatedGroup;
-      this.groupsSubject.next([...currentGroups]);
-    }
-  }
-
-  canCurrentUserManageGroup(): boolean {
-    if (!this.selectedGroup || !this.currentUser) return false;
-    const member = this.selectedGroup.miembros.find(m => m.userId === this.currentUser.id);
-    return member?.role === 'Propietario' || member?.role === 'Administrador';
-  }
-
-  isCurrentUserOwner(): boolean {
-    if (!this.selectedGroup || !this.currentUser) return false;
-    return this.selectedGroup.propietarioId === this.currentUser.id;
   }
 }

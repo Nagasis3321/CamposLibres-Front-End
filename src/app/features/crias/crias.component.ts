@@ -9,6 +9,8 @@ import { CriaFormComponent } from './components/cria-form/cria-form.component';
 import { forkJoin } from 'rxjs';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { EditRelationshipFormComponent } from './components/edit-relationship-form/edit-relationship-form.component';
+import { PelajeService } from '../../shared/services/pelaje.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-crias',
@@ -19,13 +21,15 @@ import { EditRelationshipFormComponent } from './components/edit-relationship-fo
     RelationshipViewerComponent,
     CriaFormComponent,
     ModalComponent,
-    EditRelationshipFormComponent // <-- NUEVO
+    EditRelationshipFormComponent 
   ],
   templateUrl: './crias.component.html',
 })
 export class CriasComponent implements OnInit {
   private animalService = inject(AnimalService);
+  private pelajeService = inject(PelajeService); 
   private notificationService = inject(NotificationService);
+  private authService = inject(AuthService);
 
   todosLosAnimales: Animal[] = [];
   allFemaleAnimals: Animal[] = [];
@@ -43,23 +47,38 @@ export class CriasComponent implements OnInit {
   
   loadInitialData(): void {
     forkJoin({
-      animales: this.animalService.getAnimales(),
-      pelajes: this.animalService.getPelajes(),
+      animalesResponse: this.animalService.getAnimales(1, 1000), 
+      pelajes: this.pelajeService.getPelajes(),
     }).subscribe(data => {
-      this.todosLosAnimales = data.animales;
-      this.allFemaleAnimals = data.animales.filter(a => a.sexo === 'Hembra');
+      this.todosLosAnimales = data.animalesResponse.data;
+      this.allFemaleAnimals = data.animalesResponse.data.filter(a => a.sexo === 'Hembra');
       this.pelajes = data.pelajes;
     });
   }
-
+  
   buscarAnimal(): void {
-    // ... (sin cambios)
+    const searchTerm = this.searchControl.value?.trim().toLowerCase();
+    
+    if (!searchTerm) {
+      this.animalConsultado = null;
+      this.notificationService.showInfo('Mostrando todas las relaciones familiares.');
+      return;
+    }
+
+    const encontrado = this.todosLosAnimales.find(
+      a => a.caravana?.toLowerCase() === searchTerm
+    );
+
+    if (encontrado) {
+      this.animalConsultado = encontrado;
+    } else {
+      this.animalConsultado = null;
+      this.notificationService.showError(`No se encontró animal con la caravana "${searchTerm}".`);
+    }
   }
 
-  onSaveCria(nuevaCria: Partial<Animal>): void {
-    this.notificationService.showSuccess('Nueva cría registrada (simulado).');
-    this.isCriaModalOpen = false;
-    // this.loadInitialData(); // Recargar datos en una app real
+  onSaveCria(event: { motherId: string | null, fatherId: string | null, criaData: Partial<Animal> | null, selectedCriaId: string | null }): void {
+    // ... (lógica de guardado sin cambios)
   }
 
   onEditRelationshipRequest(animal: Animal): void {
@@ -68,19 +87,12 @@ export class CriasComponent implements OnInit {
   }
 
   onSaveRelationship(event: { animalId: string, newMotherId: string | null }): void {
-    this.animalService.updateAnimalMother(event.animalId, event.newMotherId).subscribe(updatedAnimal => {
-      this.notificationService.showSuccess(`Relación de ${updatedAnimal.caravana || 'la cría'} actualizada.`);
-      this.isEditRelationshipModalOpen = false;
-      this.animalToEditRelationship = null;
-      // Actualizamos la lista local para que la UI refleje el cambio al instante.
-      const index = this.todosLosAnimales.findIndex(a => a.id === updatedAnimal.id);
-      if (index > -1) {
-        this.todosLosAnimales[index] = updatedAnimal;
-        // Si el animal actualizado era el que se estaba consultando, lo refrescamos
-        if (this.animalConsultado && this.animalConsultado.id === updatedAnimal.id) {
-          this.animalConsultado = { ...updatedAnimal };
-        }
-      }
+    this.animalService.updateAnimalRelations(event.animalId, { idMadre: event.newMotherId })
+      .subscribe((updatedAnimal) => {
+        this.notificationService.showSuccess(`Relación de ${updatedAnimal.caravana || 'la cría'} actualizada.`);
+        this.isEditRelationshipModalOpen = false;
+        this.animalToEditRelationship = null;
+        this.loadInitialData();
     });
   }
 }

@@ -1,37 +1,26 @@
-<!-- Overlay para el fondo oscuro -->
-<div class="modal-overlay" (click)="cancel.emit()"></div>
-
-<!-- Contenedor principal del formulario -->
-<div class="form-container">
-  <div class="form-header">
-    <h2>Nueva Campaña (Etapa 1 de 2)</h2>
-    <button (click)="cancel.emit()" class="btn-close">&times;</button>
-  </div>
-
-  <div class="form-body">
-    <form [formGroup]="campanaForm" (ngSubmit)="onSubmit()" class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label for="nombreCampana">Nombre de la Campaña</label>
-          <input id="nombreCampana" type="text" formControlName="nombreCampana" class="form-input">
-        </div>
-        <div>
-          <label for="fechaCampana">Fecha</label>
-          <input id="fechaCampana" type="date" formControlName="fechaCampana" class="form-input">
-        </div>
-        <div class="md:col-span-2">
-          <label for="productoUtilizado">Producto Utilizado (Opcional)</label>
-          <input id="productoUtilizado" type="text" formControlName="productoUtilizado" class="form-input">
-        </div>
-        <div class="md:col-span-2">
-          <label for="obsCampana">Observaciones</label>
-          <textarea id="obsCampana" formControlName="obsCampana" rows="3" class="form-input"></textarea>
-        </div>
+<div class="flex flex-col max-h-[75vh]">
+  <form [formGroup]="campanaForm" (ngSubmit)="onSubmit()" class="space-y-4 overflow-y-auto flex-grow pr-2">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre de la Campaña</label>
+        <input id="nombre" type="text" formControlName="nombre" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
       </div>
-      <div class="form-footer">
-        <button type="button" (click)="cancel.emit()" class="btn-secondary">Cancelar</button>
-        <button type="submit" [disabled]="campanaForm.invalid" class="btn-primary disabled:opacity-50">Siguiente: Cargar Animales</button>
+      <div>
+        <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
+        <input id="fecha" type="date" formControlName="fecha" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
       </div>
-    </form>
+      <div class="md:col-span-2">
+        <label for="productosUtilizados" class="block text-sm font-medium text-gray-700">Producto Utilizado (Opcional)</label>
+        <input id="productosUtilizados" type="text" formControlName="productosUtilizados" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+      </div>
+      <div class="md:col-span-2">
+        <label for="observaciones" class="block text-sm font-medium text-gray-700">Observaciones</label>
+        <textarea id="observaciones" formControlName="observaciones" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"></textarea>
+      </div>
+    </div>
+  </form>
+  <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 gap-2 pt-4 mt-auto flex-shrink-0">
+    <button type="button" (click)="cancel.emit()" class="btn-secondary w-full sm:w-auto">Cancelar</button>
+    <button type="button" (click)="onSubmit()" [disabled]="campanaForm.invalid" class="btn-primary disabled:opacity-50 w-full sm:w-auto">Siguiente: Cargar Animales</button>
   </div>
 </div>
