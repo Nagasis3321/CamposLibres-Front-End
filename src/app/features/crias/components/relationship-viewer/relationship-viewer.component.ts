@@ -18,6 +18,8 @@ export class RelationshipViewerComponent implements OnChanges {
   @Input() animalConsultado: Animal | null = null;
   @Input() todosLosAnimales: Animal[] = [];
   @Output() editRelationshipRequest = new EventEmitter<Animal>();
+  // --- EVENTO AÑADIDO ---
+  @Output() deleteRelationshipRequest = new EventEmitter<Animal>();
 
   madre: Animal | null = null;
   hermanos: Animal[] = [];
@@ -29,7 +31,6 @@ export class RelationshipViewerComponent implements OnChanges {
       this.encontrarRelaciones();
     }
   }
-
 
   private encontrarRelaciones(): void {
     this.madre = null;

@@ -44,21 +44,20 @@ export class GroupComponent implements OnInit {
     }
     this.currentUser = user;
 
-    // Ahora el forkJoin solo espera observables que sí se completan.
     forkJoin({
       users: this.userService.getUsers(),
       groups: this.groupService.getMyGroups() 
     }).subscribe(({ users, groups }) => {
-      this.allUsers = users;
+      // ✅ **CORRECCIÓN AQUÍ**
+      // Accedemos a la propiedad 'data' que contiene el array de usuarios.
+      this.allUsers = users.data; 
       this.groupsSubject.next(groups);
     });
   }
 
   loadGroups(): void {
-    // **CORRECCIÓN:** Se usa getMyGroups()
     this.groupService.getMyGroups().subscribe(groups => {
       this.groupsSubject.next(groups);
-      // Si un grupo estaba seleccionado, lo refrescamos para mantener la vista actualizada.
       if (this.selectedGroup) {
         const updatedSelectedGroup = groups.find(g => g.id === this.selectedGroup!.id);
         this.selectedGroup = updatedSelectedGroup || null;
@@ -92,7 +91,7 @@ export class GroupComponent implements OnInit {
     action.subscribe(() => {
       const message = this.modalMode === 'create' ? 'creado' : 'actualizado';
       this.notificationService.showSuccess(`Grupo "${nombre}" ${message}.`);
-      this.loadGroups(); // Recargamos la lista para reflejar el cambio.
+      this.loadGroups();
       this.isModalOpen = false;
     });
   }

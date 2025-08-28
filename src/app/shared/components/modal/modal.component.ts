@@ -19,7 +19,7 @@ export class ModalComponent {
       case 'xl': return 'max-w-xl';
       case '2xl': return 'max-w-2xl';
       case '4xl': return 'max-w-4xl';
-      case '6xl': return 'max-w-6xl'; // <-- NUEVO
+      case '6xl': return 'max-w-6xl'; 
       default: return 'max-w-lg';
     }
   }

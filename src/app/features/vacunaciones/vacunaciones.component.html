@@ -6,7 +6,6 @@
     </button>
   </div>
 
-  <!-- Selector de Contexto -->
   <div class="card" *ngIf="userGroups$ | async as groups">
     <div class="border-b border-gray-200">
       <nav class="-mb-px flex flex-wrap gap-x-6" aria-label="Tabs">
@@ -24,14 +23,13 @@
     </div>
   </div>
 
-  <!-- Lista de Campañas -->
   <div *ngIf="campanas$ | async as campanas; else loading">
     <div *ngIf="campanas.length > 0; else noCampanas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <app-campana-card 
         *ngFor="let campana of campanas" 
         [campana]="campana"
-        (verCarga)="onVerCarga(campana)">
-      </app-campana-card>
+        (verCarga)="onVerCarga(campana)"
+        (eliminar)="onEliminarCampana(campana)"> </app-campana-card>
     </div>
     <ng-template #noCampanas>
       <div class="card text-center text-neutral italic">
@@ -41,7 +39,6 @@
   </div>
   <ng-template #loading><p class="text-center text-neutral italic">Cargando campañas...</p></ng-template>
 
-  <!-- Modales -->
   <app-modal [isOpen]="isFormCampanaOpen" [title]="'Nueva Campaña para: ' + selectedContext.name" (close)="closeAllModals()" size="xl">
     <app-campana-form 
       (save)="onSaveCampana($event)" 
@@ -51,13 +48,15 @@
 
   <app-modal [isOpen]="isCargaAnimalesOpen" 
              [title]="'Cargar Animales: ' + (campanaEnProceso?.nombre || '')" 
-             (close)="closeAllModals()" size="6xl">
+             (close)="closeCargaAnimalesModal()"
+             size="6xl">
     <app-carga-animales
       *ngIf="isCargaAnimalesOpen && campanaEnProceso"
       [campana]="campanaEnProceso"
       [contextGroupId]="selectedContext.id"
+      [animalesIniciales]="animalesTemporales"
       (save)="onFinalizarCarga($event)"
-      (cancel)="closeAllModals()">
+      (cancel)="closeCargaAnimalesModal()">
     </app-carga-animales>
   </app-modal>
 </div>

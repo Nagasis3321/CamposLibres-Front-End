@@ -32,8 +32,12 @@
                    'hover:bg-gray-100 cursor-pointer': animalParaAsignar?.id !== animal.id,
                    'opacity-50 cursor-not-allowed': madreSeleccionada?.id === animal.id || padreSeleccionado?.id === animal.id
                  }">
-              <span><strong>{{ animal.caravana || 'S/C' }}</strong> - {{ animal.sexo }}</span>
-              <span class="text-xs font-semibold text-primary">{{ animalParaAsignar?.id === animal.id ? 'Seleccionado' : 'Seleccionar' }}</span>
+              <!-- MEJORA: Se muestra más información del animal -->
+              <span class="truncate">
+                <strong>{{ animal.caravana || 'S/C' }}</strong>
+                <span class="text-xs text-gray-500"> ({{animal.tipoAnimal}}) - {{ animal.pelaje }}</span>
+              </span>
+              <span class="text-xs font-semibold text-primary flex-shrink-0 ml-2">{{ animalParaAsignar?.id === animal.id ? 'Seleccionado' : 'Seleccionar' }}</span>
             </div>
           </div>
         </div>
@@ -42,12 +46,14 @@
         <div class="flex flex-col space-y-2">
           <label class="text-sm font-medium">Padres Seleccionados</label>
           <div class="border rounded-md p-2 min-h-[120px] space-y-2 flex flex-col justify-center">
+            <!-- MEJORA: Se muestra más información de la madre -->
             <div *ngIf="madreSeleccionada" class="p-2 bg-pink-100 text-pink-800 text-sm rounded-md flex justify-between items-center">
-              <span><strong>Madre:</strong> {{ madreSeleccionada.caravana }}</span>
+              <span><strong>Madre:</strong> {{ madreSeleccionada.caravana || 'S/C' }} <span class="font-normal text-xs">({{ madreSeleccionada.pelaje }})</span></span>
               <button type="button" (click)="removerParent('madre')" class="font-bold text-pink-600">&times;</button>
             </div>
+            <!-- MEJORA: Se muestra más información del padre -->
             <div *ngIf="padreSeleccionado" class="p-2 bg-blue-100 text-blue-800 text-sm rounded-md flex justify-between items-center">
-              <span><strong>Padre:</strong> {{ padreSeleccionado.caravana }}</span>
+              <span><strong>Padre:</strong> {{ padreSeleccionado.caravana || 'S/C' }} <span class="font-normal text-xs">({{ padreSeleccionado.pelaje }})</span></span>
               <button type="button" (click)="removerParent('padre')" class="font-bold text-blue-600">&times;</button>
             </div>
             <p *ngIf="!madreSeleccionada && !padreSeleccionado" class="text-xs text-center text-gray-400">Seleccione un animal de la lista.</p>
@@ -100,8 +106,9 @@
         <label class="text-sm font-medium">Seleccionar Animal Existente como Cría</label>
         <select formControlName="existingCriaId" class="mt-1 w-full border border-gray-300 rounded-md p-2">
           <option [ngValue]="null" disabled>-- Elija un animal --</option>
+          <!-- MEJORA: Se muestra más información en el desplegable -->
           <option *ngFor="let animal of todosLosAnimales" [value]="animal.id">
-            {{ animal.caravana || '(Sin Caravana)' }} - {{ animal.pelaje }}
+            Caravana: {{ animal.caravana || 'S/C' }} | Tipo: {{ animal.tipoAnimal }} | Pelaje: {{ animal.pelaje }}
           </option>
         </select>
       </div>

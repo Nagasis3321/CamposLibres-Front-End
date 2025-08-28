@@ -12,3 +12,13 @@ export interface Animal {
   descripcion?: string;
 }
 
+
+
+export interface AnimalFilters {
+  page?: number;
+  limit?: number;
+  groupId?: string | null;
+  caravana?: string | null;
+  pelaje?: string | null;
+  tipoAnimal?: string | null;
+}

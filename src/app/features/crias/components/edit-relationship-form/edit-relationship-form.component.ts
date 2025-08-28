@@ -32,10 +32,11 @@ export class EditRelationshipFormComponent implements OnInit {
     if (this.animalToEdit.idMadre) {
       this.currentMother = this.allFemaleAnimals.find(a => a.id === this.animalToEdit.idMadre) || null;
     }
+    this.searchMothers(); // Hacemos una búsqueda inicial para poblar la lista
   }
 
   searchMothers(): void {
-    const searchTerm = this.searchForm.get('motherSearch')?.value.trim().toLowerCase();
+    const searchTerm = this.searchForm.get('motherSearch')?.value.trim().toLowerCase() || '';
     this.possibleMothers = this.allFemaleAnimals.filter(
       a => a.id !== this.animalToEdit.id && // No puede ser su propia madre
            (a.caravana?.toLowerCase().includes(searchTerm) || a.pelaje.toLowerCase().includes(searchTerm))
@@ -44,14 +45,30 @@ export class EditRelationshipFormComponent implements OnInit {
 
   selectMother(mother: Animal): void {
     this.selectedNewMother = mother;
-    this.searchForm.get('motherSearch')?.setValue(mother.caravana);
-    this.possibleMothers = [];
+    this.searchForm.get('motherSearch')?.setValue(`${mother.caravana} - ${mother.pelaje}`);
+    this.possibleMothers = []; // Ocultamos la lista después de seleccionar
+  }
+
+  /**
+   * FUNCIÓN CORREGIDA: Maneja la eliminación de la madre actual.
+   * Se elimina la confirmación nativa que es bloqueada en este entorno.
+   * Emite el evento de guardado con un ID nulo para la madre directamente.
+   */
+  removeCurrentMother(): void {
+    this.save.emit({
+      animalId: this.animalToEdit.id,
+      newMotherId: null
+    });
   }
 
   onSubmit(): void {
-    this.save.emit({
-      animalId: this.animalToEdit.id,
-      newMotherId: this.selectedNewMother?.id || null
-    });
+    // Solo emitimos si se ha seleccionado una nueva madre.
+    // La eliminación se maneja con el botón 'removeCurrentMother'.
+    if (this.selectedNewMother) {
+      this.save.emit({
+        animalId: this.animalToEdit.id,
+        newMotherId: this.selectedNewMother.id
+      });
+    }
   }
 }

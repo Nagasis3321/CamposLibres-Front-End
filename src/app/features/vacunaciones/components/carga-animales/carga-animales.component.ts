@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Animal } from '../../../../shared/models/animal.model';
 import { Campana } from '../../../../shared/models/campana.model';
-import { HydratedGroup } from '../../../../shared/models/group.model';
 import { AnimalService } from '../../../../shared/services/animal.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AnimalFormComponent } from '../../../animales/components/animal-form/animal-form.component';
@@ -11,6 +10,8 @@ import { ModalComponent } from '../../../../shared/components/modal/modal.compon
 import { GroupService } from '../../../../shared/services/group.service';
 import { PelajeService } from '../../../../shared/services/pelaje.service';
 import { AuthService } from '../../../../core/services/auth.service';
+
+type DisplayItem = Animal | { type: 'marca'; id: number };
 
 @Component({
   selector: 'app-carga-animales',
@@ -21,6 +22,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 export class CargaAnimalesComponent implements OnInit, OnChanges {
   @Input() campana!: Partial<Campana>;
   @Input() contextGroupId: string | null = null;
+  @Input() animalesIniciales: Animal[] = [];
   @Output() save = new EventEmitter<Animal[]>();
   @Output() cancel = new EventEmitter<void>();
 
@@ -35,7 +37,8 @@ export class CargaAnimalesComponent implements OnInit, OnChanges {
   todosLosAnimales: Animal[] = [];
   animalesDisponibles: Animal[] = [];
   animalesEnCampana: Animal[] = [];
-  
+  listaVisual: DisplayItem[] = [];
+
   possibleOwners: { id: string, nombre: string }[] = [];
   pelajes: string[] = [];
   
@@ -72,7 +75,6 @@ export class CargaAnimalesComponent implements OnInit, OnChanges {
   private setPossibleOwners(): void {
     if (this.contextGroupId) {
       this.groupService.findOne(this.contextGroupId).subscribe(group => {
-          // CORRECCIÓN: Se verifica que 'group.miembros' exista antes de mapearlo.
           this.possibleOwners = group?.miembros?.map(m => ({ id: m.userId, nombre: m.nombre })) || [];
         });
     } else {
@@ -82,16 +84,20 @@ export class CargaAnimalesComponent implements OnInit, OnChanges {
   }
 
   private inicializarListas(): void {
-    if (this.campana && this.campana.animales) {
-        this.animalesEnCampana = [...this.campana.animales];
+    if (this.animalesIniciales && this.animalesIniciales.length > 0) {
+      this.animalesEnCampana = [...this.animalesIniciales];
+    } 
+    else if (this.campana && this.campana.animales) {
+      this.animalesEnCampana = [...this.campana.animales];
     } else {
-        this.animalesEnCampana = [];
+      this.animalesEnCampana = [];
     }
+    this.listaVisual = [...this.animalesEnCampana];
   }
 
   private filtrarAnimalesDisponibles(): void {
-    const { caravana, duenoId } = this.searchForm.value;
     const idsEnCampana = new Set(this.animalesEnCampana.map(a => a.id));
+    const { caravana, duenoId } = this.searchForm.value;
 
     this.animalesDisponibles = this.todosLosAnimales.filter(animal => {
       if (idsEnCampana.has(animal.id)) return false;
@@ -102,24 +108,53 @@ export class CargaAnimalesComponent implements OnInit, OnChanges {
   }
 
   agregarAnimal(animal: Animal): void {
-    this.animalesEnCampana.push(animal);
+    this.animalesEnCampana.unshift(animal);
+    this.listaVisual.unshift(animal);
     this.filtrarAnimalesDisponibles();
   }
 
-  quitarAnimal(animal: Animal): void {
-    this.animalesEnCampana = this.animalesEnCampana.filter(a => a.id !== animal.id);
-    this.filtrarAnimalesDisponibles();
+  agregarMarcaDeCarga(): void {
+    this.listaVisual.unshift({ type: 'marca', id: Date.now() });
+  }
+
+  quitarItem(index: number): void {
+    const item = this.listaVisual[index];
+    
+    if (this.isAnimal(item)) {
+      this.animalesEnCampana = this.animalesEnCampana.filter(a => a.id !== item.id);
+    }
+    
+    this.listaVisual.splice(index, 1);
+    this.filtrarAnimalesDisponibles(); // Vuelve a filtrar para que el animal quitado aparezca como disponible
+  }
+  
+  /**
+   * NUEVO: Borra todos los animales y marcas de la carga actual.
+   */
+  borrarTodos(): void {
+    this.animalesEnCampana = [];
+    this.listaVisual = [];
+    this.filtrarAnimalesDisponibles(); // Actualiza la lista de disponibles
   }
 
   onSaveNewAnimal(animalData: Partial<Animal>): void {
     this.animalService.createAnimal(animalData).subscribe(newAnimal => {
       this.notificationService.showSuccess(`Animal ${newAnimal.caravana || ''} creado y agregado.`);
-      this.loadAnimalsForContext();
+      this.todosLosAnimales.push(newAnimal);
+      this.agregarAnimal(newAnimal);
       this.isAnimalFormOpen = false;
     });
   }
 
   finalizarCarga(): void {
     this.save.emit(this.animalesEnCampana);
+  }
+
+  isAnimal(item: DisplayItem): item is Animal {
+    return 'caravana' in item;
+  }
+
+  isMarca(item: DisplayItem): item is { type: 'marca'; id: number } {
+    return 'type' in item && item.type === 'marca';
   }
 }

@@ -36,7 +36,7 @@ export class AnimalesComponent implements OnInit {
   public pelajes$!: Observable<string[]>;
   
   public totalAnimales = 0;
-  public currentUser!: User;
+  public currentUser: User | null = null;
   
   // --- Filtros ---
   private filterSubject = new BehaviorSubject<{ page: number, groupId: string | null }>({ page: 1, groupId: null });
@@ -48,16 +48,20 @@ export class AnimalesComponent implements OnInit {
   public possibleOwners: { id: string, nombre: string }[] = [];
 
   ngOnInit(): void {
-    this.currentUser = this.authService.currentUserValue!;
+    this.currentUser = this.authService.currentUserValue;
+    if (!this.currentUser) {
+      this.notificationService.showError('No se pudo obtener la información del usuario. Por favor, recargue la página.');
+      return;
+    }
+
     this.userGroups$ = this.groupService.getMyGroups();
     this.pelajes$ = this.pelajeService.getPelajes();
     
     this.animales$ = this.filterSubject.pipe(
       switchMap(({ page, groupId }) => 
-        this.animalService.getAnimales(page, 10, groupId).pipe(
+        this.animalService.getAnimales(page, 1000, groupId).pipe(
           map(response => {
             this.totalAnimales = response.total;
-            // La API debería devolver el nombre del dueño, si no, se necesitaría hidratación.
             return response.data;
           })
         )
@@ -71,12 +75,15 @@ export class AnimalesComponent implements OnInit {
     this.filterSubject.next({ page: 1, groupId: this.selectedGroupId });
   }
 
-  // --- Manejo de Modales y Formularios ---
   openModalParaCrear(groups: HydratedGroup[] | null): void {
     if (this.selectedGroupId) {
       const selectedGroup = groups?.find(g => g.id === this.selectedGroupId);
       this.possibleOwners = selectedGroup?.miembros.map(m => ({ id: m.userId, nombre: m.nombre })) || [];
     } else {
+      if (!this.currentUser) {
+        this.notificationService.showError('Información de usuario no disponible para crear el animal.');
+        return;
+      }
       this.possibleOwners = [{ id: this.currentUser.id, nombre: this.currentUser.nombre }];
     }
     
@@ -89,6 +96,10 @@ export class AnimalesComponent implements OnInit {
       const selectedGroup = event.groups?.find(g => g.id === this.selectedGroupId);
       this.possibleOwners = selectedGroup?.miembros.map(m => ({ id: m.userId, nombre: m.nombre })) || [];
     } else {
+      if (!this.currentUser) {
+        this.notificationService.showError('Información de usuario no disponible para editar el animal.');
+        return;
+      }
       this.possibleOwners = [{ id: this.currentUser.id, nombre: this.currentUser.nombre }];
     }
 
@@ -97,21 +108,44 @@ export class AnimalesComponent implements OnInit {
   }
 
   onSave(animalData: Partial<Animal>): void {
-    const action = this.selectedAnimal
-      ? this.animalService.updateAnimal(this.selectedAnimal.id, animalData)
-      : this.animalService.createAnimal(animalData);
+    const isUpdating = !!this.selectedAnimal;
+    let action: Observable<Animal>;
+
+    if (isUpdating) {
+      // 1. Clonamos los datos del formulario para no modificar el objeto original.
+      const updatePayload = { ...animalData };
+
+      // 2. Eliminamos las propiedades que el backend no acepta en la actualización.
+      delete updatePayload.id;
+      delete updatePayload.duenoId;
+      
+      // 3. Preparamos la acción de actualizar con el payload limpio.
+      action = this.animalService.updateAnimal(this.selectedAnimal!.id, updatePayload);
+    } else {
+      // Si es una creación, usamos los datos tal cual vienen del formulario.
+      action = this.animalService.createAnimal(animalData);
+    }
 
     action.subscribe({
       next: () => {
-        this.notificationService.showSuccess(`Animal guardado con éxito.`);
+        const message = isUpdating ? 'Animal actualizado con éxito.' : 'Animal creado con éxito.';
+        this.notificationService.showSuccess(message);
         this.filterSubject.next(this.filterSubject.getValue()); // Recarga los datos
         this.isModalOpen = false;
       },
-      error: (err) => this.notificationService.showError(err.error?.message || 'Error al guardar el animal.')
+      error: (err) => {
+        const defaultMessage = isUpdating ? 'Error al actualizar el animal.' : 'Error al crear el animal.';
+        // Manejo mejorado para mostrar mensajes de error que vienen en un array
+        const errorMessage = Array.isArray(err.error?.message) 
+          ? err.error.message.join('. ') 
+          : err.error?.message;
+        this.notificationService.showError(errorMessage || defaultMessage);
+      }
     });
   }
 
   onEliminar(animalId: string): void {
+    // Reemplazamos el confirm nativo por una solución más segura en el futuro
     if (!confirm('¿Estás seguro de que quieres eliminar este animal?')) return;
     
     this.animalService.deleteAnimal(animalId).subscribe({

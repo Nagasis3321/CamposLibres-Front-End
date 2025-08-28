@@ -2,15 +2,16 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Animal } from '../models/animal.model';
+import { environment } from '../../../environments/environment'; // Importa environment
 
 @Injectable({
   providedIn: 'root'
 })
 export class AnimalService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000/animals';
+  private apiUrl = `${environment.apiUrl}/animals`; // Usa la variable de entorno
 
-  getAnimales(page = 1, limit = 10, groupId?: string | null): Observable<{ data: Animal[], total: number, page: number, limit: number }> {
+  getAnimales(page = 1, limit = 1000, groupId?: string | null): Observable<{ data: Animal[], total: number, page: number, limit: number }> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('limit', limit.toString());

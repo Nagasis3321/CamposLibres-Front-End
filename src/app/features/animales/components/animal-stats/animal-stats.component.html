@@ -1,0 +1,25 @@
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[60vh] overflow-y-auto pr-2">
+    <!-- Columna de Estadísticas por Tipo -->
+    <div>
+      <h4 class="text-lg font-semibold text-neutral-dark mb-3">Animales por Tipo</h4>
+      <div class="space-y-2">
+        <div *ngIf="statsPorTipo.length === 0" class="text-sm text-gray-500 italic">No hay datos para mostrar.</div>
+        <div *ngFor="let stat of statsPorTipo" class="flex justify-between items-center bg-gray-50 p-2 rounded-md">
+          <span class="text-sm font-medium text-gray-700">{{ stat.name }}</span>
+          <span class="text-sm font-bold text-primary px-2 py-1 bg-blue-100 rounded-full">{{ stat.count }}</span>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Columna de Estadísticas por Dueño -->
+    <div>
+      <h4 class="text-lg font-semibold text-neutral-dark mb-3">Animales por Dueño</h4>
+      <div class="space-y-2">
+        <div *ngIf="statsPorDueno.length === 0" class="text-sm text-gray-500 italic">No hay datos para mostrar.</div>
+        <div *ngFor="let stat of statsPorDueno" class="flex justify-between items-center bg-gray-50 p-2 rounded-md">
+          <span class="text-sm font-medium text-gray-700">{{ stat.name }}</span>
+          <span class="text-sm font-bold text-primary px-2 py-1 bg-blue-100 rounded-full">{{ stat.count }}</span>
+        </div>
+      </div>
+    </div>
+  </div>

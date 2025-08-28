@@ -36,24 +36,10 @@
 
   /* Estilo para las tarjetas que se usarán en el dashboard y otras vistas. */
   .card {
-    @apply bg-white rounded-lg shadow-md p-6;
+    @apply bg-white rounded-lg shadow-md p-3;
   }
 }
 
 
 
-@tailwind utilities {
-  @keyframes fade-in-down {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  .animate-fade-in-down {
-    animation: fade-in-down 0.5s ease-out forwards;
-  }
-}
+

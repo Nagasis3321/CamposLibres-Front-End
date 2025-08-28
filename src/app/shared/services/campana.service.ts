@@ -2,13 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Campana, CampaignDto } from '../models/campana.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CampanaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000/campaigns';
+  private apiUrl = `${environment.apiUrl}/campaigns`;
 
   getCampaigns(context: { groupId?: string | null }): Observable<Campana[]> {
     let params = new HttpParams();

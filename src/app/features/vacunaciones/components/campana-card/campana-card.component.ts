@@ -12,6 +12,7 @@ import { Campana } from '../../../../shared/models/campana.model';
 export class CampanaCardComponent {
   @Input() campana!: Campana;
   @Output() verCarga = new EventEmitter<Campana>();
+  @Output() eliminar = new EventEmitter<void>(); // NUEVO: Evento para notificar la eliminación
 
   // Función para determinar el estado basado en si tiene animales o no
   getEstado(): { texto: string, clase: string } {
@@ -19,5 +20,10 @@ export class CampanaCardComponent {
       return { texto: 'Completada', clase: 'bg-green-200 text-green-800' };
     }
     return { texto: 'Pendiente Carga', clase: 'bg-yellow-200 text-yellow-800' };
+  }
+
+  onDeleteClick(event: MouseEvent): void {
+    event.stopPropagation(); // Evita que otros eventos (como la navegación) se disparen
+    this.eliminar.emit();
   }
 }

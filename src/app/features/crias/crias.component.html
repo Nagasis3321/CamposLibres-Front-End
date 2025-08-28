@@ -20,10 +20,13 @@
     </div>
   </div>
 
+  <!-- CORRECCIÓN APLICADA AQUÍ -->
+  <!-- Se añade el listener para el evento (deleteRelationshipRequest) -->
   <app-relationship-viewer 
     [animalConsultado]="animalConsultado"
     [todosLosAnimales]="todosLosAnimales"
-    (editRelationshipRequest)="onEditRelationshipRequest($event)">
+    (editRelationshipRequest)="onEditRelationshipRequest($event)"
+    (deleteRelationshipRequest)="onDeleteRelationship($event)">
   </app-relationship-viewer>
 
   <!-- Se añade size="4xl" para hacer el modal más grande -->

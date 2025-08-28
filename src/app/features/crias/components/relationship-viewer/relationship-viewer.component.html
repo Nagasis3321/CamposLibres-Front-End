@@ -21,11 +21,15 @@
     <div *ngIf="animalConsultado.sexo === 'Hembra'">
       <h4 class="text-lg font-medium text-neutral-dark">Crías Registradas ({{ crias.length }})</h4>
       <ul *ngIf="crias.length > 0; else noCrias" class="mt-2 space-y-3 text-sm">
-        <li *ngFor="let cria of crias" class="p-3 border rounded-md">
-          <p><strong>Caravana:</strong> {{ cria.caravana || 'S/C' }}</p>
-          <p><strong>Tipo:</strong> {{ cria.tipoAnimal }}</p>
-          <p><strong>Pelaje:</strong> {{ cria.pelaje }}</p>
-          <p><strong>Dueño:</strong> {{ cria.dueno?.nombre || 'N/A' }}</p>
+        <li *ngFor="let cria of crias" class="p-3 border rounded-md flex justify-between items-center">
+          <div>
+            <p><strong>Caravana:</strong> {{ cria.caravana || 'S/C' }}</p>
+            <p><strong>Tipo:</strong> {{ cria.tipoAnimal }}</p>
+            <p><strong>Pelaje:</strong> {{ cria.pelaje }}</p>
+            <p><strong>Dueño:</strong> {{ cria.dueno?.nombre || 'N/A' }}</p>
+          </div>
+          <!-- BOTÓN AÑADIDO -->
+          <button (click)="deleteRelationshipRequest.emit(cria)" class="btn-danger text-xs">Eliminar</button>
         </li>
       </ul>
       <ng-template #noCrias><p class="text-sm text-neutral italic mt-2">No se encontraron crías para este animal.</p></ng-template>
@@ -45,9 +49,13 @@
             Gestionar Crías
           </button>
         </div>
-        <ul class="list-disc pl-6 mt-2 text-sm text-neutral-dark space-y-1">
-          <li *ngFor="let cria of relacion.crias">
-            <strong>{{ cria.caravana || '(S/C)' }}</strong> - {{ cria.tipoAnimal }}, {{ cria.pelaje }}, {{ cria.dueno?.nombre || 'N/A' }}
+        <ul class="mt-2 text-sm text-neutral-dark space-y-2">
+          <li *ngFor="let cria of relacion.crias" class="flex justify-between items-center border-t py-2">
+            <span>
+              <strong>{{ cria.caravana || '(S/C)' }}</strong> - {{ cria.tipoAnimal }}, {{ cria.pelaje }}
+            </span>
+            <!-- BOTÓN AÑADIDO -->
+            <button (click)="deleteRelationshipRequest.emit(cria)" class="btn-danger-outline text-xs">Eliminar Relación</button>
           </li>
         </ul>
       </div>

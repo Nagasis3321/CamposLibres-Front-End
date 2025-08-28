@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { User } from '../../shared/models/user.model';
+import { environment } from '../../../environments/environment'; // Importa environment
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +13,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   
-  // URL base de tu API (ajústala si es necesario)
-  private apiUrl = 'http://localhost:3000/auth'; 
+  private apiUrl = `${environment.apiUrl}/auth`; // Usa la variable de entorno
 
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
@@ -25,10 +25,9 @@ export class AuthService {
   private tryRehydrateUser(): void {
     const token = this.getToken();
     if (token && !this.currentUserSubject.getValue()) {
-      // Valida el token contra el endpoint de perfil al iniciar.
       this.http.get<User>(`${this.apiUrl}/profile`).subscribe({
         next: user => this.currentUserSubject.next(user),
-        error: () => this.logout() // Si el token no es válido, cierra la sesión.
+        error: () => this.logout()
       });
     }
   }

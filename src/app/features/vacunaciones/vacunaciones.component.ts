@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BehaviorSubject, Observable, switchMap } from 'rxjs';
 import { Campana, CampaignDto } from '../../shared/models/campana.model';
@@ -32,6 +32,8 @@ export class VacunacionesComponent implements OnInit {
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
 
+  @ViewChild(CargaAnimalesComponent) cargaAnimalesComponent?: CargaAnimalesComponent;
+
   private contextSubject = new BehaviorSubject<{ groupId: string | null }>({ groupId: null });
   campanas$!: Observable<Campana[]>;
   userGroups$!: Observable<HydratedGroup[]>;
@@ -43,6 +45,8 @@ export class VacunacionesComponent implements OnInit {
   
   modalMode: 'create' | 'edit' = 'create';
   campanaEnProceso: Partial<Campana> | null = null;
+  
+  animalesTemporales: Animal[] = [];
 
   ngOnInit(): void {
     this.currentUser = this.authService.currentUserValue!;
@@ -52,6 +56,30 @@ export class VacunacionesComponent implements OnInit {
       switchMap(context => this.campanaService.getCampaigns(context))
     );
   }
+
+  // ... (otros métodos como selectContext, openModalNuevaCampana, etc. sin cambios)
+  
+  /**
+   * NUEVO: Maneja la lógica para eliminar una campaña.
+   */
+  onEliminarCampana(campana: Campana): void {
+    const confirmacion = confirm(`¿Estás seguro de que deseas eliminar la campaña "${campana.nombre}"? Esta acción no se puede deshacer.`);
+
+    if (confirmacion) {
+      this.campanaService.deleteCampaign(campana.id).subscribe({
+        next: () => {
+          this.notificationService.showSuccess(`Campaña "${campana.nombre}" eliminada con éxito.`);
+          // Refresca la lista de campañas para que se reflejen los cambios
+          this.contextSubject.next(this.contextSubject.getValue());
+        },
+        error: (err) => {
+          this.notificationService.showError(err.error?.message || 'Error al eliminar la campaña.');
+        }
+      });
+    }
+  }
+
+  // --- El resto de métodos permanecen sin cambios ---
 
   selectContext(group: HydratedGroup | null): void {
     if (group) {
@@ -65,6 +93,7 @@ export class VacunacionesComponent implements OnInit {
   openModalNuevaCampana(): void {
     this.modalMode = 'create';
     this.campanaEnProceso = null;
+    this.animalesTemporales = [];
     this.isFormCampanaOpen = true;
   }
 
@@ -77,7 +106,15 @@ export class VacunacionesComponent implements OnInit {
   onVerCarga(campana: Campana): void {
     this.modalMode = 'edit';
     this.campanaEnProceso = campana;
+    this.animalesTemporales = campana.animales || [];
     this.isCargaAnimalesOpen = true;
+  }
+
+  closeCargaAnimalesModal(): void {
+    if (this.cargaAnimalesComponent) {
+      this.animalesTemporales = this.cargaAnimalesComponent.animalesEnCampana;
+    }
+    this.isCargaAnimalesOpen = false;
   }
 
   onFinalizarCarga(animales: Animal[]): void {
@@ -85,31 +122,24 @@ export class VacunacionesComponent implements OnInit {
         this.notificationService.showError("No se encontraron datos de la campaña para guardar.");
         return;
     }
-
     const campaignPayload: CampaignDto = {
       nombre: this.campanaEnProceso.nombre!,
       fecha: this.campanaEnProceso.fecha!,
       animalesIds: animales.map(a => a.id)
     };
-
     if (this.campanaEnProceso.observaciones) {
       campaignPayload.observaciones = this.campanaEnProceso.observaciones;
     }
     if (this.selectedContext.id) {
       campaignPayload.groupId = this.selectedContext.id;
     }
-    
-    console.log('Enviando payload a la API:', campaignPayload);
-
     let action$: Observable<Campana>;
-
     if (this.modalMode === 'create') {
       action$ = this.campanaService.createCampaign(campaignPayload);
     } else {
       const { groupId, ...updatePayload } = campaignPayload;
       action$ = this.campanaService.updateCampaign(this.campanaEnProceso.id!, updatePayload);
     }
-
     action$.subscribe({
       next: () => {
         const message = this.modalMode === 'create' ? 'creada' : 'actualizada';
@@ -118,7 +148,6 @@ export class VacunacionesComponent implements OnInit {
         this.contextSubject.next(this.contextSubject.getValue());
       },
       error: (err) => {
-        console.error('Error de la API:', err);
         this.notificationService.showError(err.error?.message || 'Error al guardar la campaña.');
       }
     });
@@ -128,5 +157,6 @@ export class VacunacionesComponent implements OnInit {
     this.isFormCampanaOpen = false;
     this.isCargaAnimalesOpen = false;
     this.campanaEnProceso = null;
+    this.animalesTemporales = [];
   }
 }
