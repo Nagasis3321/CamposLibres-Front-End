@@ -1,0 +1,47 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h2 class="text-3xl font-bold text-neutral-dark">Gestión de Grupos</h2>
+    <button (click)="openCreateModal()" class="btn-primary">
+      Crear Nuevo Grupo
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Columna de lista de grupos -->
+    <div class="lg:col-span-1">
+      <app-group-list
+        [groups]="(userGroups$ | async) || []"
+        [selectedGroupId]="selectedGroup?.id || null"
+        [currentUser]="currentUser"
+        (select)="selectGroup($event)"
+        (edit)="onEditRequest($event)"
+        (delete)="onDeleteRequest($event)"
+        (leaveGroup)="onLeaveGroup($event)">
+      </app-group-list>
+    </div>
+
+    <!-- Columna de detalles del grupo seleccionado -->
+    <div class="lg:col-span-2">
+      <app-member-manager 
+        *ngIf="selectedGroup && currentUser"
+        [group]="selectedGroup"
+        [currentUser]="currentUser"
+        (invite)="onInviteMember($event)"
+        (remove)="onRemoveMember($event)"
+        (changeRole)="onChangeRole($event)">
+      </app-member-manager>
+      <div *ngIf="!selectedGroup" class="card text-center">
+        <p class="text-neutral italic">Selecciona un grupo de la lista para ver sus detalles y gestionar miembros.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para crear o editar un grupo -->
+  <app-modal [isOpen]="isModalOpen" [title]="modalMode === 'create' ? 'Crear Nuevo Grupo' : 'Modificar Grupo'" (close)="isModalOpen = false">
+    <app-group-form 
+      [group]="groupToEdit"
+      (save)="onSaveGroup($event)" 
+      (cancel)="isModalOpen = false">
+    </app-group-form>
+  </app-modal>
+</div>

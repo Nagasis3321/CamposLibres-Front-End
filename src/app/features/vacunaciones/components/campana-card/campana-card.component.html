@@ -1,0 +1,37 @@
+<div class="card hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between h-full relative">
+  
+  <button 
+    (click)="onDeleteClick($event)" 
+    aria-label="Eliminar campaña"
+    class="absolute top-2 right-2 text-neutral hover:text-danger p-1 rounded-full transition-colors duration-200 z-10">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+  </button>
+
+  <div>
+    <div class="flex justify-between items-start mb-2">
+      <h4 class="text-lg font-semibold text-primary pr-8">{{ campana.nombre }}</h4>
+    </div>
+    <p class="text-sm text-neutral"><strong>Fecha:</strong> {{ campana.fecha | date:'dd/MM/yyyy' }}</p>
+    <p class="text-sm text-neutral"><strong>Producto:</strong> {{ campana.productosUtilizados || 'N/A' }}</p>
+    <p class="text-sm text-neutral"><strong>Animales:</strong> {{ campana.animales.length }}</p>
+    <p class="mt-2 text-xs text-gray-500 italic">{{ campana.observaciones || 'Sin observaciones.' }}</p>
+  </div>
+  
+  <div class="mt-4 flex justify-between items-center">
+    
+    <span class="px-3 py-1 text-xs font-semibold rounded-full" [ngClass]="getEstado().clase">
+      {{ getEstado().texto }}
+    </span>
+
+    <div class="flex gap-2">
+      <button (click)="verDetalle.emit(campana)" class="text-sm text-info font-semibold hover:underline">
+        Ver Detalle
+      </button>
+    <button (click)="verCarga.emit(campana)" class="text-sm text-primary-dark font-semibold hover:underline">
+      {{ getEstado().texto === 'Completada' ? 'Ver/Editar Carga' : 'Cargar Animales' }}
+    </button>
+    </div>
+  </div>
+</div>

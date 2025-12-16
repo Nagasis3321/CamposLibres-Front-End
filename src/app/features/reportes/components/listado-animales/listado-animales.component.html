@@ -1,0 +1,57 @@
+<div class="space-y-4">
+  <div class="flex justify-between items-center">
+    <h3 class="text-xl font-semibold text-neutral-dark">{{ titulo }}</h3>
+    <div *ngIf="mostrarBotones && animales.length > 0" class="flex gap-2">
+      <button 
+        (click)="exportarPDF()" 
+        class="btn-secondary text-sm px-3 py-1">
+        📄 PDF
+      </button>
+      <button 
+        (click)="exportarExcel()" 
+        class="btn-secondary text-sm px-3 py-1">
+        📊 Excel
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="animales.length === 0" class="text-center text-neutral italic py-8">
+    No hay animales para mostrar.
+  </div>
+
+  <div *ngIf="animales.length > 0" class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+      <thead class="bg-primary text-white">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Caravana</th>
+          <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Tipo</th>
+          <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Pelaje</th>
+          <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Sexo</th>
+          <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Dueño</th>
+          <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha Nac.</th>
+          <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Descripción</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let animal of animales" class="hover:bg-gray-50">
+          <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+            {{ animal.caravana || 'S/C' }}
+          </td>
+          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ animal.tipoAnimal }}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ animal.pelaje || 'N/A' }}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ animal.sexo }}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+            {{ animal.dueno?.nombre || 'N/A' }}
+          </td>
+          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+            {{ formatearFecha(animal.fechaNacimiento) }}
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">
+            {{ animal.descripcion || 'N/A' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+

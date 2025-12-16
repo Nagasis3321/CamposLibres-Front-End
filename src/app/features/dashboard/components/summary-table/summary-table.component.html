@@ -1,0 +1,62 @@
+<div class="card overflow-hidden">
+  <h3 class="text-xl font-semibold text-neutral-dark mb-4 px-6 pt-6">Resumen de Animales por Dueño</h3>
+  <div class="overflow-x-auto">
+    <table class="min-w-full">
+      <thead class="bg-neutral-light">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dueño</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Vacas</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Vaquilas</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Terneros</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Terneras</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Novillos</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Toros</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Sin Caravana</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let item of data" class="hover:bg-gray-50">
+          <td class="px-6 py-4 whitespace-nowrap font-medium text-neutral-dark">{{ item.dueno }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-center font-bold text-lg text-primary">{{ item.total }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-neutral-dark">
+            <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full font-semibold">
+              {{ item.tipos['Vaca'] || 0 }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-neutral-dark">
+            <span class="px-2 py-1 bg-pink-100 text-pink-800 rounded-full font-semibold">
+              {{ item.tipos['Vaquilla'] || 0 }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-neutral-dark">
+            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full font-semibold">
+              {{ item.tipos['Ternero'] || 0 }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-neutral-dark">
+            <span class="px-2 py-1 bg-cyan-100 text-cyan-800 rounded-full font-semibold">
+              {{ item.tipos['Ternera'] || 0 }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-neutral-dark">
+            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full font-semibold">
+              {{ item.tipos['Novillo'] || 0 }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-neutral-dark">
+            <span class="px-2 py-1 bg-orange-100 text-orange-800 rounded-full font-semibold">
+              {{ item.tipos['Toro'] || 0 }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-red-600 font-semibold">
+            {{ item.sinCaravana }}
+          </td>
+        </tr>
+        <tr *ngIf="data.length === 0">
+          <td colspan="9" class="text-center py-8 text-neutral">No hay datos para mostrar.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,141 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+    <h2 class="text-3xl font-bold text-neutral-dark">Campañas Sanitarias</h2>
+    <button (click)="openModalNuevaCampana()" class="btn-primary w-full sm:w-auto">
+      + Nueva Campaña
+    </button>
+  </div>
+
+  <div class="card" *ngIf="userGroups$ | async as groups">
+    <div class="border-b border-gray-200">
+      <nav class="-mb-px flex flex-wrap gap-x-6" aria-label="Tabs">
+        <button (click)="selectContext(null)"
+                [ngClass]="selectedContext.type === 'user' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+          Mis Campañas
+        </button>
+        <button *ngFor="let group of groups" (click)="selectContext(group)"
+                [ngClass]="selectedContext.id === group.id ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+          {{ group.nombre }}
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Barra de búsqueda y ordenamiento -->
+  <div class="card">
+    <div class="flex flex-col md:flex-row gap-4">
+      <!-- Búsqueda -->
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1">🔍 Buscar por nombre</label>
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm"
+          placeholder="Escribe el nombre de la campaña..."
+          class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none">
+      </div>
+
+      <!-- Ordenar por -->
+      <div class="w-full md:w-48">
+        <label class="block text-sm font-medium text-gray-700 mb-1">📊 Ordenar por</label>
+        <select 
+          [(ngModel)]="sortBy"
+          class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none">
+          <option value="nombre">Nombre</option>
+          <option value="fecha">Fecha</option>
+        </select>
+      </div>
+
+      <!-- Orden -->
+      <div class="w-full md:w-48">
+        <label class="block text-sm font-medium text-gray-700 mb-1">🔄 Orden</label>
+        <select 
+          [(ngModel)]="sortOrder"
+          class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none">
+          <option value="asc">{{ sortBy === 'nombre' ? 'A - Z' : 'Más Antiguas' }}</option>
+          <option value="desc">{{ sortBy === 'nombre' ? 'Z - A' : 'Más Recientes' }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="campanas$ | async as campanas; else loading">
+    <div *ngIf="filteredAndSortedCampanas(campanas).length > 0; else noCampanas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <app-campana-card 
+        *ngFor="let campana of filteredAndSortedCampanas(campanas)" 
+        [campana]="campana"
+        (verCarga)="onVerCarga(campana)"
+        (verDetalle)="onVerDetalle(campana)"
+        (eliminar)="onEliminarCampana(campana)"> </app-campana-card>
+    </div>
+    <ng-template #noCampanas>
+      <div class="card text-center text-neutral italic">
+        {{ searchTerm ? 'No se encontraron campañas que coincidan con "' + searchTerm + '"' : 'No hay campañas registradas para "' + selectedContext.name + '".' }}
+      </div>
+    </ng-template>
+  </div>
+  <ng-template #loading><p class="text-center text-neutral italic">Cargando campañas...</p></ng-template>
+
+  <!-- Modal de Detalles de Campaña -->
+  <app-modal [isOpen]="isDetallesCampanaOpen" [title]="'Detalles de Campaña'" (close)="isDetallesCampanaOpen = false">
+    <div *ngIf="campanaSeleccionada" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Nombre</label>
+          <p class="text-lg text-gray-900">{{ campanaSeleccionada.nombre }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Fecha</label>
+          <p class="text-lg text-gray-900">{{ campanaSeleccionada.fecha | date:'dd/MM/yyyy' }}</p>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-500 mb-1">Productos Utilizados</label>
+          <p class="text-gray-900">{{ campanaSeleccionada.productosUtilizados || 'N/A' }}</p>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-500 mb-1">Observaciones</label>
+          <p class="text-gray-900">{{ campanaSeleccionada.observaciones || 'Sin observaciones' }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Número de Animales</label>
+          <p class="text-lg text-gray-900">{{ (campanaSeleccionada.animales || []).length }} animales</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-4 border-t border-gray-200">
+        <button (click)="editarDesdeDetalles()" class="btn-primary flex-1">
+          ✏️ Modificar Campaña
+        </button>
+        <button (click)="isDetallesCampanaOpen = false" class="btn-secondary flex-1">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </app-modal>
+
+  <app-modal [isOpen]="isFormCampanaOpen" [title]="'Nueva Campaña para: ' + selectedContext.name" (close)="closeAllModals()" size="xl">
+    <app-campana-form 
+      (save)="onSaveCampana($event)" 
+      (cancel)="closeAllModals()">
+    </app-campana-form>
+  </app-modal>
+
+  <app-modal [isOpen]="isCargaAnimalesOpen" 
+             [title]="'Cargar Animales: ' + (campanaEnProceso?.nombre || '')" 
+             (close)="closeCargaAnimalesModal()"
+             size="6xl">
+    <app-carga-animales
+      *ngIf="isCargaAnimalesOpen && campanaEnProceso"
+      [campana]="campanaEnProceso"
+      [contextGroupId]="selectedContext.id"
+      [animalesIniciales]="animalesTemporales"
+      (save)="onFinalizarCarga($event)"
+      (cancel)="closeCargaAnimalesModal()">
+    </app-carga-animales>
+  </app-modal>
+</div>

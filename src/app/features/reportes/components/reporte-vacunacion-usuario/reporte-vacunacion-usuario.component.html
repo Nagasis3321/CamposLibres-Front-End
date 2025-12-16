@@ -1,0 +1,61 @@
+<div class="space-y-6">
+  <div class="card">
+    <h3 class="text-xl font-semibold mb-4">Detalle Vacunación por Usuario</h3>
+    
+    <form [formGroup]="form" (ngSubmit)="generarReporte()" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Campaña</label>
+          <select formControlName="campanaId" class="w-full border border-gray-300 rounded-md p-2">
+            <option value="">Seleccione una campaña</option>
+            <option *ngFor="let campana of campanas" [value]="campana.id">
+              {{ campana.nombre }} - {{ campana.fecha | date:'short' }}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+          <select formControlName="usuarioId" class="w-full border border-gray-300 rounded-md p-2">
+            <option value="">Seleccione un usuario</option>
+            <option *ngFor="let usuario of usuarios" [value]="usuario.id">
+              {{ usuario.nombre }} ({{ usuario.email }})
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="loading || form.invalid" class="btn-primary">
+        {{ loading ? 'Generando...' : 'Generar Reporte' }}
+      </button>
+    </form>
+  </div>
+
+  <div *ngIf="datosPorTipo.length > 0 || listadoAnimales.length > 0" class="space-y-6">
+    <div class="flex justify-end gap-2">
+      <button (click)="exportarCompletoPDF()" class="btn-secondary">
+        📄 Exportar PDF Completo
+      </button>
+      <button (click)="exportarCompletoExcel()" class="btn-secondary">
+        📊 Exportar Excel Completo
+      </button>
+    </div>
+
+    <div class="card">
+      <app-datos-por-tipo 
+        [datosPorTipo]="datosPorTipo"
+        [titulo]="'Datos por Tipo - ' + (usuarioSeleccionado?.nombre || 'Usuario')"
+        [mostrarBotones]="true">
+      </app-datos-por-tipo>
+    </div>
+
+    <div class="card">
+      <app-listado-animales 
+        [animales]="listadoAnimales"
+        [titulo]="'Listado de Animales - ' + (usuarioSeleccionado?.nombre || 'Usuario')"
+        [mostrarBotones]="true">
+      </app-listado-animales>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,18 @@
+<div *ngIf="totalPages > 1" class="flex justify-between items-center p-4 border-t">
+    <span class="text-sm text-neutral">
+      Mostrando página {{ currentPage }} de {{ totalPages }} ({{ totalItems }} items en total)
+    </span>
+    <div class="flex space-x-1">
+      <button (click)="selectPage(currentPage - 1)" [disabled]="currentPage === 1" class="px-3 py-1 border rounded-md text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+        Anterior
+      </button>
+      <!-- Aquí se podría añadir una lógica más compleja para mostrar solo algunas páginas -->
+      <button *ngFor="let page of pages" (click)="selectPage(page)" [class.bg-primary]="page === currentPage" [class.text-white]="page === currentPage" class="px-3 py-1 border rounded-md text-sm hover:bg-gray-100">
+        {{ page }}
+      </button>
+      <button (click)="selectPage(currentPage + 1)" [disabled]="currentPage === totalPages" class="px-3 py-1 border rounded-md text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+        Siguiente
+      </button>
+    </div>
+  </div>
+  

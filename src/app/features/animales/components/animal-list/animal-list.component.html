@@ -1,0 +1,78 @@
+<div class="card overflow-hidden h-full flex flex-col">
+  <!-- Panel de Filtros -->
+  <form [formGroup]="searchForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 border-b flex-shrink-0">
+    <div>
+      <label for="caravana" class="text-xs font-medium text-gray-500">Caravana</label>
+      <input id="caravana" type="text" formControlName="caravana" placeholder="Buscar..." class="form-input w-full mt-1">
+    </div>
+    <div>
+      <label for="pelaje" class="text-xs font-medium text-gray-500">Pelaje</label>
+      <select id="pelaje" formControlName="pelaje" class="form-input w-full mt-1">
+        <option value="">Todos</option>
+        <option>Blanco/a</option>
+        <option>Valla</option>
+        <option>Valla Mocha</option>
+        <option>Colorada Mocha</option>
+        <option>Pampa</option>
+        <option>Negra Cara Blanca</option>
+        <option>Osco</option>
+
+      </select>
+    </div>
+    <div>
+      <label for="tipoAnimal" class="text-xs font-medium text-gray-500">Tipo de Animal</label>
+      <select id="tipoAnimal" formControlName="tipoAnimal" class="form-input w-full mt-1">
+        <option value="">Todos</option>
+        <option>Vaca</option>
+        <option>Vaquilla</option>
+        <option>Ternero</option>
+        <option>Ternera</option>
+        <option>Novillo</option>
+        <option>Toro</option>
+      </select>
+    </div>
+  </form>
+
+  <!-- Contenedor de la Tabla con Scroll -->
+  <div class="overflow-auto flex-grow max-h-[25rem]">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-neutral-light sticky top-0 z-10">
+        <tr>
+          <th (click)="requestSort('caravana')" class="py-3 px-2 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200">
+            Caravana <span *ngIf="sortColumn === 'caravana'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+          </th>
+          <th (click)="requestSort('tipoAnimal')" class="py-3 px-2 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200">
+            Tipo <span *ngIf="sortColumn === 'tipoAnimal'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+          </th>
+          <th (click)="requestSort('dueno')" class="py-3 px-2 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200">
+            Dueño <span *ngIf="sortColumn === 'dueno'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+          </th>
+          <th (click)="requestSort('pelaje')" class="py-3 px-2 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200">
+            Pelaje <span *ngIf="sortColumn === 'pelaje'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+          </th>
+          <th (click)="requestSort('sexo')" class="py-3 px-2 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200">
+            Sexo <span *ngIf="sortColumn === 'sexo'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+          </th>
+          <th class="py-3 px-2 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngIf="displayedAnimales.length === 0">
+          <td colspan="6" class="text-center py-8 text-neutral">No se encontraron animales con los filtros aplicados.</td>
+        </tr>
+        <tr *ngFor="let animal of displayedAnimales; trackBy: trackById" class="hover:bg-gray-50">
+          <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm font-medium text-neutral-dark">{{ animal.caravana || '-' }}</td>
+          <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm text-neutral">{{ animal.tipoAnimal }}</td>
+          <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm text-neutral">{{ animal.dueno?.nombre || 'No asignado' }}</td>
+          <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm text-neutral">{{ animal.pelaje }}</td>
+          <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm text-neutral">{{ animal.sexo }}</td>
+          <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm font-medium space-x-4">
+            <button (click)="verDetalle.emit(animal)" class="text-primary hover:text-primary-dark font-semibold">Ver</button>
+            <button (click)="editar.emit(animal)" class="text-info hover:text-blue-700 font-semibold">Editar</button>
+            <button (click)="eliminar.emit(animal.id)" class="text-danger hover:text-red-700 font-semibold">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

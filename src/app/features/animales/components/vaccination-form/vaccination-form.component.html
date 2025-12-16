@@ -1,0 +1,81 @@
+<form [formGroup]="vaccinationForm" (ngSubmit)="onSubmit()" class="space-y-4">
+  <div>
+    <label for="nombreVacuna" class="block text-sm font-medium text-gray-700 mb-1">
+      Nombre de la Vacuna <span class="text-red-500">*</span>
+    </label>
+    <input
+      type="text"
+      id="nombreVacuna"
+      formControlName="nombreVacuna"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+      [class.border-red-500]="nombreVacuna?.invalid && nombreVacuna?.touched"
+    />
+    <div *ngIf="nombreVacuna?.invalid && nombreVacuna?.touched" class="mt-1 text-sm text-red-600">
+      El nombre de la vacuna es obligatorio.
+    </div>
+  </div>
+
+  <div>
+    <label for="fecha" class="block text-sm font-medium text-gray-700 mb-1">
+      Fecha <span class="text-red-500">*</span>
+    </label>
+    <input
+      type="date"
+      id="fecha"
+      formControlName="fecha"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+      [class.border-red-500]="fecha?.invalid && fecha?.touched"
+    />
+    <div *ngIf="fecha?.invalid && fecha?.touched" class="mt-1 text-sm text-red-600">
+      La fecha es obligatoria.
+    </div>
+  </div>
+
+  <div>
+    <label for="lote" class="block text-sm font-medium text-gray-700 mb-1">Lote</label>
+    <input
+      type="text"
+      id="lote"
+      formControlName="lote"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+    />
+  </div>
+
+  <div>
+    <label for="veterinario" class="block text-sm font-medium text-gray-700 mb-1">Veterinario</label>
+    <input
+      type="text"
+      id="veterinario"
+      formControlName="veterinario"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+    />
+  </div>
+
+  <div>
+    <label for="observaciones" class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+    <textarea
+      id="observaciones"
+      formControlName="observaciones"
+      rows="3"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+    ></textarea>
+  </div>
+
+  <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+    <button
+      type="button"
+      (click)="onCancel()"
+      class="btn-secondary"
+    >
+      Cancelar
+    </button>
+    <button
+      type="submit"
+      [disabled]="vaccinationForm.invalid"
+      class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {{ mode === 'create' ? 'Crear' : 'Actualizar' }}
+    </button>
+  </div>
+</form>
+

@@ -1,0 +1,54 @@
+<div class="space-y-6">
+  <div class="card">
+    <h3 class="text-xl font-semibold mb-4">Detalle Vacunación General</h3>
+    
+    <form [formGroup]="form" (ngSubmit)="generarReporte()" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Campaña</label>
+        <select formControlName="campanaId" class="w-full border border-gray-300 rounded-md p-2">
+          <option value="">Seleccione una campaña</option>
+          <option *ngFor="let campana of campanas" [value]="campana.id">
+            {{ campana.nombre }} - {{ campana.fecha | date:'short' }}
+          </option>
+        </select>
+      </div>
+
+      <button type="submit" [disabled]="loading || form.invalid" class="btn-primary">
+        {{ loading ? 'Generando...' : 'Generar Reporte' }}
+      </button>
+    </form>
+  </div>
+
+  <div *ngIf="reporteData" class="space-y-6">
+    <div class="flex justify-end gap-2">
+      <button (click)="exportarCompletoPDF()" class="btn-secondary">
+        📄 Exportar PDF Completo
+      </button>
+      <button (click)="exportarCompletoExcel()" class="btn-secondary">
+        📊 Exportar Excel Completo
+      </button>
+    </div>
+
+    <!-- Datos por Dueño -->
+    <div *ngFor="let item of reporteData.datosPorDueno" class="space-y-4">
+      <div class="card">
+        <h4 class="text-lg font-semibold mb-4">Dueño: {{ item.dueno.nombre }}</h4>
+        
+        <app-datos-por-tipo 
+          [datosPorTipo]="item.datosPorTipo"
+          [titulo]="'Datos por Tipo - ' + item.dueno.nombre"
+          [mostrarBotones]="true">
+        </app-datos-por-tipo>
+      </div>
+
+      <div class="card">
+        <app-listado-animales 
+          [animales]="item.listados"
+          [titulo]="'Listado de Animales - ' + item.dueno.nombre"
+          [mostrarBotones]="true">
+        </app-listado-animales>
+      </div>
+    </div>
+  </div>
+</div>
+

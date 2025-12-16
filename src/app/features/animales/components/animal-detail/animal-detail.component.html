@@ -1,0 +1,173 @@
+<div class="space-y-6" *ngIf="!loading && animal">
+  <div class="flex items-center justify-between">
+    <h2 class="text-3xl font-bold text-neutral-dark">Detalle de Animal</h2>
+    <button (click)="goBack()" class="btn-secondary">
+      Volver a Lista
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Información Básica -->
+    <div class="card">
+      <h3 class="text-xl font-semibold mb-4 text-neutral-dark">Información Básica</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Caravana</label>
+          <p class="text-lg text-gray-900">{{ animal.caravana || 'N/A' }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Tipo de Animal</label>
+          <p class="text-lg text-gray-900">{{ animal.tipoAnimal }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Pelaje</label>
+          <p class="text-lg text-gray-900">{{ animal.pelaje }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Sexo</label>
+          <p class="text-lg text-gray-900">{{ animal.sexo }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Raza</label>
+          <p class="text-lg text-gray-900">{{ animal.raza || 'N/A' }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Fecha de Nacimiento</label>
+          <p class="text-lg text-gray-900">{{ formatDate(animal.fechaNacimiento) }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información Adicional -->
+    <div class="card">
+      <h3 class="text-xl font-semibold mb-4 text-neutral-dark">Información Adicional</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Descripción</label>
+          <p class="text-gray-900 whitespace-pre-wrap">{{ animal.descripcion || 'Sin descripción' }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">ID</label>
+          <p class="text-sm text-gray-600 font-mono break-all">{{ animal.id }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">ID Madre</label>
+          <p class="text-sm text-gray-600 font-mono">{{ animal.idMadre || 'N/A' }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">ID Padre</label>
+          <p class="text-sm text-gray-600 font-mono">{{ animal.idPadre || 'N/A' }}</p>
+        </div>
+
+        <div *ngIf="animal.createdAt">
+          <label class="block text-sm font-medium text-gray-500 mb-1">Fecha de Registro</label>
+          <p class="text-gray-900">{{ formatDate(animal.createdAt) }}</p>
+        </div>
+
+        <div *ngIf="animal.updatedAt">
+          <label class="block text-sm font-medium text-gray-500 mb-1">Última Actualización</label>
+          <p class="text-gray-900">{{ formatDate(animal.updatedAt) }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex gap-3 flex-wrap">
+    <button (click)="editAnimal()" class="btn-primary">
+      Editar Animal
+    </button>
+    <button (click)="goBack()" class="btn-secondary">
+      Ver Relaciones Familiares
+    </button>
+    <button (click)="openVaccinationModal()" class="btn-secondary bg-green-600 hover:bg-green-700">
+      + Vacunación
+    </button>
+    <button (click)="openStateModal()" class="btn-secondary bg-yellow-600 hover:bg-yellow-700">
+      + Estado
+    </button>
+    <button (click)="openBirthModal()" class="btn-secondary bg-purple-600 hover:bg-purple-700">
+      + Parto
+    </button>
+    <button (click)="openHistoryModal()" class="btn-secondary bg-blue-600 hover:bg-blue-700">
+      + Historial
+    </button>
+  </div>
+
+  <!-- Historial del Animal -->
+  <div class="card mt-6">
+    <app-animal-history [animalId]="animal.id"></app-animal-history>
+  </div>
+</div>
+
+<!-- Modales -->
+<app-modal 
+  [isOpen]="isVaccinationModalOpen" 
+  [title]="'Registrar Vacunación'" 
+  (close)="closeModals()"
+>
+  <app-vaccination-form
+    *ngIf="animal"
+    [animalId]="animal.id"
+    mode="create"
+    (save)="onSaveVaccination($event)"
+    (cancel)="closeModals()"
+  ></app-vaccination-form>
+</app-modal>
+
+<app-modal 
+  [isOpen]="isStateModalOpen" 
+  [title]="'Registrar Estado'" 
+  (close)="closeModals()"
+>
+  <app-animal-state-form
+    *ngIf="animal"
+    [animalId]="animal.id"
+    mode="create"
+    (save)="onSaveState($event)"
+    (cancel)="closeModals()"
+  ></app-animal-state-form>
+</app-modal>
+
+<app-modal 
+  [isOpen]="isBirthModalOpen" 
+  [title]="'Registrar Parto'" 
+  (close)="closeModals()"
+>
+  <app-birth-form
+    *ngIf="animal"
+    [animalId]="animal.id"
+    mode="create"
+    (save)="onSaveBirth($event)"
+    (cancel)="closeModals()"
+  ></app-birth-form>
+</app-modal>
+
+<app-modal 
+  [isOpen]="isHistoryModalOpen" 
+  [title]="'Agregar al Historial'" 
+  (close)="closeModals()"
+>
+  <app-history-form
+    *ngIf="animal"
+    [animalId]="animal.id"
+    (save)="onSaveHistory($event)"
+    (cancel)="closeModals()"
+  ></app-history-form>
+</app-modal>
+
+<div *ngIf="loading" class="flex justify-center items-center h-64">
+  <div class="text-gray-500">Cargando...</div>
+</div>
+
+<div *ngIf="!loading && !animal" class="card">
+  <p class="text-center text-gray-500">Animal no encontrado.</p>
+</div>
+

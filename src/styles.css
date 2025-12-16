@@ -1,0 +1,56 @@
+/* Importa las capas base, componentes y utilidades de Tailwind CSS. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos globales y personalizados para la aplicación */
+@layer base {
+  /* Define el color de fondo por defecto para toda la aplicación. */
+  body {
+    @apply bg-neutral-light text-neutral-dark;
+    font-family: 'Inter', sans-serif; /* Se recomienda instalar esta fuente o elegir una similar */
+  }
+
+  /* Estilos base para los encabezados para mantener consistencia. */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold text-neutral-dark;
+  }
+
+  /* Estilos para los enlaces para que usen el color primario de la paleta. */
+  a {
+    @apply text-primary-dark hover:text-primary transition-colors duration-200;
+  }
+}
+
+/* Clases de componentes personalizados que puedes reutilizar en tu HTML. */
+@layer components {
+  /* Un botón principal con los colores de la paleta. */
+  .btn-primary {
+    @apply px-4 py-2 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary-light focus:ring-opacity-75 transition-all duration-200;
+  }
+
+  /* Un botón secundario con un estilo de contorno. */
+  .btn-secondary {
+    @apply px-4 py-2 bg-transparent border-2 border-primary text-primary font-semibold rounded-lg hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-light focus:ring-opacity-75 transition-all duration-200;
+  }
+
+  /* Estilo para las tarjetas que se usarán en el dashboard y otras vistas. */
+  .card {
+    @apply bg-white rounded-lg shadow-md p-3;
+  }
+
+  /* Estilos para inputs que sean legibles en modo claro */
+  .form-input {
+    @apply bg-white text-neutral-dark border border-gray-300 rounded-md px-3 py-2;
+  }
+  .form-input:focus {
+    @apply outline-none border-primary ring-2 ring-primary ring-opacity-20;
+  }
+  .form-input::placeholder {
+    @apply text-gray-400;
+  }
+}
+
+
+
+

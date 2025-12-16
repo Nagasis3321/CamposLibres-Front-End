@@ -1,0 +1,39 @@
+<div class="space-y-4">
+  <div class="flex justify-between items-center">
+    <h3 class="text-xl font-semibold text-neutral-dark">{{ titulo }}</h3>
+    <div *ngIf="mostrarBotones && datosPorTipo.length > 0" class="flex gap-2">
+      <button 
+        (click)="exportarPDF()" 
+        class="btn-secondary text-sm px-3 py-1">
+        📄 PDF
+      </button>
+      <button 
+        (click)="exportarExcel()" 
+        class="btn-secondary text-sm px-3 py-1">
+        📊 Excel
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="datosPorTipo.length === 0" class="text-center text-neutral italic py-8">
+    No hay datos para mostrar.
+  </div>
+
+  <div *ngIf="datosPorTipo.length > 0" class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+      <thead class="bg-primary text-white">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Tipo de Animal</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Cantidad</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let dato of datosPorTipo" class="hover:bg-gray-50">
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ dato.tipo }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ dato.cantidad }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+

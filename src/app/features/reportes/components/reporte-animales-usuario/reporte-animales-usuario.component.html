@@ -1,0 +1,45 @@
+<div class="space-y-6">
+  <div class="card">
+    <h3 class="text-xl font-semibold mb-4">Detalles Animales Usuario</h3>
+    <p class="text-sm text-neutral mb-4">Reporte completo de todos los animales del usuario actual</p>
+    
+    <button 
+      *ngIf="!loading && (datosPorTipo.length === 0 && listadoAnimales.length === 0)"
+      (click)="generarReporte()" 
+      class="btn-primary">
+      Generar Reporte
+    </button>
+
+    <div *ngIf="loading" class="text-center py-8">
+      <p class="text-neutral">Generando reporte...</p>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && (datosPorTipo.length > 0 || listadoAnimales.length > 0)" class="space-y-6">
+    <div class="flex justify-end gap-2">
+      <button (click)="exportarCompletoPDF()" class="btn-secondary">
+        📄 Exportar PDF Completo
+      </button>
+      <button (click)="exportarCompletoExcel()" class="btn-secondary">
+        📊 Exportar Excel Completo
+      </button>
+    </div>
+
+    <div class="card">
+      <app-datos-por-tipo 
+        [datosPorTipo]="datosPorTipo"
+        [titulo]="'Datos por Tipo - ' + (usuario?.nombre || 'Usuario')"
+        [mostrarBotones]="true">
+      </app-datos-por-tipo>
+    </div>
+
+    <div class="card">
+      <app-listado-animales 
+        [animales]="listadoAnimales"
+        [titulo]="'Listado de Animales - ' + (usuario?.nombre || 'Usuario')"
+        [mostrarBotones]="true">
+      </app-listado-animales>
+    </div>
+  </div>
+</div>
+

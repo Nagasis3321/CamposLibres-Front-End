@@ -1,0 +1,47 @@
+<div class="space-y-6">
+  <!-- Usamos *ngIf para resolver el observable userGroups$ una sola vez -->
+  <ng-container *ngIf="userGroups$ | async as groups">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+      <h2 class="text-3xl font-bold text-neutral-dark">Gestión de Animales</h2>
+      <!-- Pasamos la variable 'groups' (que es un array) a la función -->
+      <button (click)="openModalParaCrear(groups)" class="btn-primary w-full sm:w-auto">
+        Nuevo Animal
+      </button>
+    </div>
+    
+    <div class="card">
+      <div class="border-b border-gray-200">
+        <nav class="-mb-px flex flex-wrap gap-x-6" aria-label="Tabs">
+          <button (click)="selectFilter(null)"
+                  [ngClass]="selectedGroupId === null ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                  class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+            Mis Animales
+          </button>
+          <!-- Iteramos sobre la variable 'groups' -->
+          <button *ngFor="let group of groups" (click)="selectFilter(group.id)"
+                  [ngClass]="selectedGroupId === group.id ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                  class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+            {{ group.nombre }}
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <app-animal-list 
+      [animales]="(animales$ | async) || []" 
+      (editar)="onEditar({ animal: $event, groups: groups })" 
+      (eliminar)="onEliminar($event)"
+      (verDetalle)="onVerDetalle($event)">
+    </app-animal-list>
+
+    <app-modal [isOpen]="isModalOpen" [title]="selectedAnimal ? 'Editar Animal' : 'Registrar Nuevo Animal'" (close)="isModalOpen = false">
+      <app-animal-form
+        [animal]="selectedAnimal"
+        [pelajes]="(pelajes$ | async) || []"
+        [duenos]="possibleOwners"
+        (save)="onSave($event)"
+        (cancel)="isModalOpen = false">
+      </app-animal-form>
+    </app-modal>
+  </ng-container>
+</div>

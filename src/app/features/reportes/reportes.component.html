@@ -1,0 +1,42 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h2 class="text-3xl font-bold text-neutral-dark">Reportes</h2>
+  </div>
+
+  <div *ngIf="!tipoReporteSeleccionado">
+    <!-- Selección de tipo de reporte -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div 
+        *ngFor="let tipo of tiposReporte" 
+        (click)="seleccionarTipoReporte(tipo.value)"
+        class="card cursor-pointer hover:shadow-lg transition-shadow">
+        <h3 class="text-xl font-semibold text-primary mb-2">{{ tipo.label }}</h3>
+        <p class="text-sm text-neutral">{{ tipo.descripcion }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Componentes de reporte específicos -->
+  <div *ngIf="tipoReporteSeleccionado">
+    <button (click)="volver()" class="btn-secondary mb-4">
+      ← Volver a Selección
+    </button>
+
+    <app-reporte-vacunacion-usuario 
+      *ngIf="tipoReporteSeleccionado === 'vacunacion-usuario'">
+    </app-reporte-vacunacion-usuario>
+
+    <app-reporte-vacunacion-general 
+      *ngIf="tipoReporteSeleccionado === 'vacunacion-general'">
+    </app-reporte-vacunacion-general>
+
+    <app-reporte-animales-usuario 
+      *ngIf="tipoReporteSeleccionado === 'animales-usuario'">
+    </app-reporte-animales-usuario>
+
+    <app-reporte-animales-grupo 
+      *ngIf="tipoReporteSeleccionado === 'animales-grupo'">
+    </app-reporte-animales-grupo>
+  </div>
+</div>
+

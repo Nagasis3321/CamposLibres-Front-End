@@ -1,0 +1,124 @@
+<div class="space-y-6">
+  <!-- Modal de detalles de usuario -->
+  <app-modal 
+    [isOpen]="showUserModal" 
+    [title]="'Detalles del Usuario'" 
+    (close)="showUserModal = false">
+    <div *ngIf="selectedMember" class="space-y-4">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center font-bold text-2xl">
+          {{ (selectedMember.nombre || '?').charAt(0).toUpperCase() }}
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-900">{{ selectedMember.nombre || 'Sin nombre' }}</h3>
+          <p class="text-sm text-gray-600">{{ selectedMember.email || 'Sin email' }}</p>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-200 pt-4 space-y-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-500">ID de Usuario</label>
+          <p class="text-gray-900 font-mono text-sm break-all">{{ selectedMember.userId }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500">Rol en el Grupo</label>
+          <span class="inline-block mt-1 px-4 py-2 text-sm font-bold rounded-full"
+                [ngClass]="{
+                  'bg-yellow-200 text-yellow-900 border-2 border-yellow-400': selectedMember.role === 'Propietario',
+                  'bg-blue-200 text-blue-900 border-2 border-blue-400': selectedMember.role === 'Administrador',
+                  'bg-gray-200 text-gray-900 border-2 border-gray-400': selectedMember.role === 'Miembro'
+                }">
+            {{ selectedMember.role }}
+          </span>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-4 border-t border-gray-200">
+        <button (click)="showUserModal = false" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </app-modal>
+
+<div class="space-y-6">
+  <div *ngIf="canManageMembers()" class="card bg-blue-50 border-2 border-blue-200">
+    <h4 class="text-lg font-semibold mb-4 text-blue-900">✉️ Invitar Nuevo Miembro</h4>
+    <form [formGroup]="inviteForm" (ngSubmit)="onInviteSubmit()" class="flex items-end gap-3">
+      <div class="flex-grow">
+        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email del usuario</label>
+        <input 
+          id="email" 
+          type="email" 
+          formControlName="email" 
+          placeholder="usuario@ejemplo.com"
+          class="w-full border-2 border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none">
+      </div>
+      <div class="w-48">
+        <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Asignar Rol</label>
+        <select 
+          id="role" 
+          formControlName="role" 
+          class="w-full border-2 border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none">
+          <option value="Miembro">Miembro</option>
+          <option value="Administrador">Administrador</option>
+        </select>
+      </div>
+      <button 
+        type="submit" 
+        class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap" 
+        [disabled]="inviteForm.invalid">
+        ✉️ Invitar
+      </button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h4 class="text-lg font-semibold mb-4 text-neutral-dark">👤 Miembros del Grupo ({{ group.miembros.length }})</h4>
+    <div class="space-y-3">
+      <div *ngFor="let member of group.miembros" 
+           class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-3 cursor-pointer" (click)="showMemberDetails(member)">
+          <!-- Avatar -->
+          <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg">
+            {{ (member.nombre || '?').charAt(0).toUpperCase() }}
+          </div>
+          <div>
+            <p class="font-bold text-blue-700 text-base">{{ member.nombre || 'Sin nombre' }}</p>
+            <p class="text-sm text-gray-600">{{ member.email || 'Sin email' }}</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <!-- Selector de rol (editable) -->
+          <select *ngIf="canEditMember(member)" 
+                  [value]="member.role" 
+                  (change)="changeRole.emit({ member: member, newRole: $any($event.target).value })"
+                  class="border-2 border-primary p-2 rounded-md text-sm font-semibold bg-white hover:bg-gray-50 focus:ring-2 focus:ring-primary focus:outline-none">
+            <option value="Miembro">Miembro</option>
+            <option value="Administrador">Administrador</option>
+          </select>
+          
+          <!-- Badge de rol (solo lectura) -->
+          <span *ngIf="!canEditMember(member)" 
+                class="px-4 py-2 text-sm font-bold rounded-full whitespace-nowrap"
+                [ngClass]="{
+                  'bg-yellow-200 text-yellow-900 border-2 border-yellow-400': member.role === 'Propietario',
+                  'bg-blue-200 text-blue-900 border-2 border-blue-400': member.role === 'Administrador',
+                  'bg-gray-200 text-gray-900 border-2 border-gray-400': member.role === 'Miembro'
+                }">
+            {{ member.role }}
+          </span>
+          
+          <!-- Botón eliminar -->
+          <button *ngIf="canEditMember(member)" 
+                  (click)="remove.emit(member)" 
+                  class="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm font-semibold transition-colors">
+            🗑️ Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

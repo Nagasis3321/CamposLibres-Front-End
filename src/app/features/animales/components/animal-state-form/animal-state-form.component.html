@@ -1,0 +1,95 @@
+<form [formGroup]="stateForm" (ngSubmit)="onSubmit()" class="space-y-4">
+  <div>
+    <label for="tipo" class="block text-sm font-medium text-gray-700 mb-1">
+      Tipo de Estado <span class="text-red-500">*</span>
+    </label>
+    <select
+      id="tipo"
+      formControlName="tipo"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+      [class.border-red-500]="tipo?.invalid && tipo?.touched"
+    >
+      <option *ngFor="let stateType of stateTypes" [value]="stateType">
+        {{ stateType }}
+      </option>
+    </select>
+    <div *ngIf="tipo?.invalid && tipo?.touched" class="mt-1 text-sm text-red-600">
+      El tipo de estado es obligatorio.
+    </div>
+  </div>
+
+  <div>
+    <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">Nombre (Opcional)</label>
+    <input
+      type="text"
+      id="nombre"
+      formControlName="nombre"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+    />
+  </div>
+
+  <div>
+    <label for="fechaInicio" class="block text-sm font-medium text-gray-700 mb-1">
+      Fecha de Inicio <span class="text-red-500">*</span>
+    </label>
+    <input
+      type="date"
+      id="fechaInicio"
+      formControlName="fechaInicio"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+      [class.border-red-500]="fechaInicio?.invalid && fechaInicio?.touched"
+    />
+    <div *ngIf="fechaInicio?.invalid && fechaInicio?.touched" class="mt-1 text-sm text-red-600">
+      La fecha de inicio es obligatoria.
+    </div>
+  </div>
+
+  <div>
+    <label for="fechaFin" class="block text-sm font-medium text-gray-700 mb-1">Fecha de Fin (Opcional)</label>
+    <input
+      type="date"
+      id="fechaFin"
+      formControlName="fechaFin"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+    />
+  </div>
+
+  <div>
+    <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+    <textarea
+      id="descripcion"
+      formControlName="descripcion"
+      rows="3"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+    ></textarea>
+  </div>
+
+  <div>
+    <label class="flex items-center">
+      <input
+        type="checkbox"
+        formControlName="activo"
+        class="mr-2"
+      />
+      <span class="text-sm font-medium text-gray-700">Estado Activo</span>
+    </label>
+  </div>
+
+  <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+    <button
+      type="button"
+      (click)="onCancel()"
+      class="btn-secondary"
+    >
+      Cancelar
+    </button>
+    <button
+      type="submit"
+      [disabled]="stateForm.invalid"
+      class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {{ mode === 'create' ? 'Crear' : 'Actualizar' }}
+    </button>
+  </div>
+</form>
+

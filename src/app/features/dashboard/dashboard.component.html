@@ -1,0 +1,29 @@
+<div class="space-y-8">
+  <!-- Sección de tarjetas de estadísticas -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <app-stat-card 
+      title="Total de Animales" 
+      [value]="totalAnimales">
+    </app-stat-card>
+    <app-stat-card 
+      title="Animales sin Caravana" 
+      [value]="animalesSinCaravana">
+    </app-stat-card>
+    <app-stat-card 
+      title="Campañas Activas" 
+      [value]="campanasActivas" 
+      description="pendientes">
+    </app-stat-card>
+    <app-stat-card 
+      title="Total de Grupos" 
+      [value]="totalGrupos" 
+      description="colaborativos">
+    </app-stat-card>
+  </div>
+
+  <!-- Sección de la tabla de resumen -->
+  <div>
+    <app-summary-table [data]="resumenPorDueno"></app-summary-table>
+  </div>
+</div>
+

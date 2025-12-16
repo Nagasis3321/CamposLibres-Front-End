@@ -1,0 +1,11 @@
+<!-- Contenedor que posiciona las notificaciones en la esquina superior derecha -->
+<div class="fixed top-5 right-5 z-[100] space-y-3">
+    <!-- Itera sobre la lista de notificaciones activas -->
+    <div *ngFor="let notification of notifications" 
+         [ngClass]="getNotificationClass(notification)"
+         class="flex items-center justify-between max-w-sm p-4 rounded-lg shadow-lg animate-fade-in-down">
+      <span>{{ notification.message }}</span>
+      <button (click)="close(notification)" class="ml-4 text-xl font-bold leading-none">&times;</button>
+    </div>
+  </div>
+  

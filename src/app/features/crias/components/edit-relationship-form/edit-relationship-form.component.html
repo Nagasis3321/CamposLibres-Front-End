@@ -1,0 +1,48 @@
+<div class="flex flex-col max-h-[75vh]">
+  <div class="overflow-y-auto flex-grow pr-2 space-y-6">
+    <div class="p-4 border rounded-md bg-gray-50">
+      <p class="text-sm font-medium">Animal a Modificar:</p>
+      <p class="font-semibold text-primary">{{ animalToEdit.caravana || '(Sin Caravana)' }} - {{ animalToEdit.pelaje }}</p>
+    </div>
+    
+    <div *ngIf="currentMother; else noCurrentMother" class="p-4 border rounded-md flex justify-between items-center">
+      <div>
+        <p class="text-sm font-medium">Madre Actual:</p>
+        <p>{{ currentMother.caravana || '(Sin Caravana)' }} - {{ currentMother.pelaje }}</p>
+      </div>
+      <!-- BOTÓN AÑADIDO -->
+      <button (click)="removeCurrentMother()" class="btn-danger-outline text-sm">Quitar Madre Actual</button>
+    </div>
+    <ng-template #noCurrentMother>
+      <div class="p-4 border rounded-md text-center text-sm text-gray-500">
+        Este animal no tiene una madre asignada.
+      </div>
+    </ng-template>
+
+    <fieldset class="p-4 border rounded-md space-y-2">
+      <legend class="px-2 font-semibold">Asignar Nueva Madre</legend>
+      <form [formGroup]="searchForm" (submit)="searchMothers()" class="flex items-end space-x-2">
+        <div class="flex-grow">
+          <label for="motherSearch" class="text-sm font-medium">Buscar por Caravana o Pelaje</label>
+          <input id="motherSearch" type="text" formControlName="motherSearch" (input)="searchMothers()" class="mt-1 w-full border border-gray-300 rounded-md p-2">
+        </div>
+        <button type="submit" class="btn-secondary">Buscar</button>
+      </form>
+      
+      <div *ngIf="possibleMothers.length > 0" class="mt-2 border-t pt-2">
+        <p class="text-sm font-medium mb-2">Seleccione una madre:</p>
+        <div class="max-h-48 overflow-y-auto space-y-1 pr-2">
+          <div *ngFor="let madre of possibleMothers" (click)="selectMother(madre)"
+               class="p-2 hover:bg-primary-light hover:text-white cursor-pointer rounded-md text-sm border">
+            <strong>{{ madre.caravana || 'S/C' }}</strong> - {{ madre.pelaje }}
+          </div>
+        </div>
+      </div>
+    </fieldset>
+  </div>
+
+  <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 gap-2 pt-4 mt-auto flex-shrink-0">
+    <button type="button" (click)="cancel.emit()" class="btn-secondary w-full sm:w-auto">Cancelar</button>
+    <button type="button" (click)="onSubmit()" class="btn-primary w-full sm:w-auto" [disabled]="!selectedNewMother && !!currentMother">Guardar Relación</button>
+  </div>
+</div>

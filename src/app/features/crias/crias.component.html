@@ -1,0 +1,51 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+    <h2 class="text-3xl font-bold text-neutral-dark">Relaciones y Crías</h2>
+    <button (click)="isCriaModalOpen = true" class="btn-primary w-full sm:w-auto">
+      Registrar Relación
+    </button>
+  </div>
+
+  <div class="card">
+    <h3 class="text-lg font-semibold text-gray-700 mb-3">Consultar Relaciones</h3>
+    <div class="flex items-center space-x-2">
+      <div class="flex-grow">
+        <input 
+          type="text" 
+          [formControl]="searchControl"
+          placeholder="Ingrese caravana o deje vacío para ver todo"
+          class="w-full p-2 border border-gray-300 rounded-md shadow-sm">
+      </div>
+      <button (click)="buscarAnimal()" class="btn-primary">Consultar</button>
+    </div>
+  </div>
+
+  <!-- CORRECCIÓN APLICADA AQUÍ -->
+  <!-- Se añade el listener para el evento (deleteRelationshipRequest) -->
+  <app-relationship-viewer 
+    [animalConsultado]="animalConsultado"
+    [todosLosAnimales]="todosLosAnimales"
+    (editRelationshipRequest)="onEditRelationshipRequest($event)"
+    (deleteRelationshipRequest)="onDeleteRelationship($event)">
+  </app-relationship-viewer>
+
+  <!-- Se añade size="4xl" para hacer el modal más grande -->
+  <app-modal [isOpen]="isCriaModalOpen" title="Registrar Nueva Relación Familiar" (close)="isCriaModalOpen = false" size="4xl">
+    <app-cria-form
+      [todosLosAnimales]="todosLosAnimales"
+      [pelajes]="pelajes"
+      (save)="onSaveCria($event)"
+      (cancel)="isCriaModalOpen = false">
+    </app-cria-form>
+  </app-modal>
+
+  <app-modal [isOpen]="isEditRelationshipModalOpen" title="Cambiar Relación de Madre" (close)="isEditRelationshipModalOpen = false">
+    <app-edit-relationship-form
+      *ngIf="animalToEditRelationship"
+      [animalToEdit]="animalToEditRelationship"
+      [allFemaleAnimals]="allFemaleAnimals"
+      (save)="onSaveRelationship($event)"
+      (cancel)="isEditRelationshipModalOpen = false">
+    </app-edit-relationship-form>
+  </app-modal>
+</div>

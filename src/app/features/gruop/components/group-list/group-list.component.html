@@ -1,0 +1,83 @@
+<div class="space-y-4">
+  <!-- Sección de Invitaciones Pendientes -->
+  <div class="card bg-yellow-50 border-2 border-yellow-200">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-lg font-semibold text-yellow-800">
+        📨 Invitaciones Pendientes
+        <span class="ml-2 px-2 py-1 bg-yellow-200 text-yellow-900 rounded-full text-xs">0</span>
+      </h3>
+    </div>
+    <p class="text-sm text-yellow-700 italic">No tienes invitaciones pendientes</p>
+    <!-- TODO: Implementar lógica de invitaciones pendientes cuando esté disponible en el backend -->
+  </div>
+
+  <!-- Sección de Mis Grupos -->
+  <div class="card">
+    <h3 class="text-lg font-semibold mb-4 text-neutral-dark">👥 Mis Grupos</h3>
+    
+    <div *ngIf="groups.length > 0; else noGroups" class="space-y-3">
+      <div *ngFor="let group of groups" 
+           class="border-2 rounded-lg p-4 transition-all duration-200 cursor-pointer hover:shadow-lg"
+           [ngClass]="{
+             'border-primary bg-primary/5 shadow-md': selectedGroupId === group.id,
+             'border-gray-200 hover:border-gray-300': selectedGroupId !== group.id
+           }"
+           (click)="select.emit(group)">
+        
+        <!-- Header del grupo -->
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+              <span class="text-xl">👥</span>
+            </div>
+            <div>
+              <h4 class="font-bold text-lg text-neutral-dark">{{ group.nombre }}</h4>
+              <p class="text-sm text-gray-600">{{ group.miembros.length }} miembros</p>
+            </div>
+          </div>
+          
+          <!-- Badge del rol -->
+          <span class="px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap"
+                [ngClass]="{
+                  'bg-yellow-200 text-yellow-800': getUserRole(group) === 'Propietario',
+                  'bg-blue-200 text-blue-800': getUserRole(group) === 'Administrador',
+                  'bg-gray-200 text-gray-800': getUserRole(group) === 'Miembro'
+                }">
+            {{ getUserRole(group) }}
+          </span>
+        </div>
+
+        <!-- Acciones del grupo (solo visible cuando está seleccionado) -->
+        <div *ngIf="selectedGroupId === group.id" class="mt-3 pt-3 border-t border-gray-200 flex gap-2 flex-wrap">
+          <button 
+            *ngIf="canManageGroup(group)"
+            (click)="$event.stopPropagation(); edit.emit(group)" 
+            class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-xs font-semibold transition-colors">
+            ✏️ Editar Grupo
+          </button>
+          
+          <button 
+            *ngIf="isOwner(group)"
+            (click)="$event.stopPropagation(); delete.emit(group)" 
+            class="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-xs font-semibold transition-colors">
+            🗑️ Eliminar Grupo
+          </button>
+          
+          <button 
+            *ngIf="!isOwner(group)"
+            (click)="$event.stopPropagation(); leaveGroup.emit(group)" 
+            class="px-3 py-1 bg-orange-500 text-white rounded-md hover:bg-orange-600 text-xs font-semibold transition-colors">
+            🚪 Salir del Grupo
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <ng-template #noGroups>
+      <div class="text-center py-8">
+        <p class="text-neutral italic mb-2">No perteneces a ningún grupo aún</p>
+        <p class="text-sm text-gray-500">Crea un nuevo grupo o espera una invitación</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

@@ -1,0 +1,40 @@
+<div class="flex items-center justify-center min-h-screen bg-neutral-light p-4">
+    <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-xl">
+      <div class="text-center">
+        <h1 class="text-3xl font-bold text-neutral-dark">Crear una Cuenta</h1>
+        <p class="text-neutral">Únete a Campos Libres.</p>
+      </div>
+  
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-4">
+        <div>
+          <label for="nombre" class="text-sm font-medium text-gray-700">Nombre Completo</label>
+          <input id="nombre" type="text" formControlName="nombre" required class="mt-1 w-full border border-gray-300 p-2 rounded-md">
+        </div>
+        <div>
+          <label for="email" class="text-sm font-medium text-gray-700">Email</label>
+          <input id="email" type="email" formControlName="email" required class="mt-1 w-full border border-gray-300 p-2 rounded-md">
+        </div>
+        <div>
+          <label for="password" class="text-sm font-medium text-gray-700">Contraseña</label>
+          <input id="password" type="password" formControlName="password" required class="mt-1 w-full border border-gray-300 p-2 rounded-md">
+          <p class="text-xs text-gray-500 mt-1">Mínimo 6 caracteres.</p>
+        </div>
+        
+        <div *ngIf="error" class="p-3 text-sm text-danger bg-red-100 rounded-md">
+          {{ error }}
+        </div>
+  
+        <div>
+          <button type="submit" [disabled]="isLoading" class="w-full flex justify-center btn-primary disabled:opacity-50">
+            <span *ngIf="!isLoading">Registrarse</span>
+            <span *ngIf="isLoading" class="animate-spin h-5 w-5 text-white"></span>
+          </button>
+        </div>
+      </form>
+  
+      <p class="text-center text-sm text-neutral">
+        ¿Ya tienes una cuenta? 
+        <a routerLink="/login" class="font-medium text-primary hover:underline">Inicia sesión</a>
+      </p>
+    </div>
+  </div>
