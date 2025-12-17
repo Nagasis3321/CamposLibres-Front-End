@@ -5,12 +5,12 @@ import { Campana } from '../../../../shared/models/campana.model';
 import { CampanaService } from '../../../../shared/services/campana.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { CampanaFormComponent } from '../campana-form/campana-form.component';
-import { ReusableModalComponent } from '../../../../shared/components/reusable-modal/reusable-modal.component';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-campana-detail',
   standalone: true,
-  imports: [CommonModule, CampanaFormComponent, ReusableModalComponent],
+  imports: [CommonModule, CampanaFormComponent, ModalComponent],
   templateUrl: './campana-detail.component.html',
   styleUrl: './campana-detail.component.css'
 })

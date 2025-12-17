@@ -104,9 +104,10 @@
 </div>
 
 <!-- Modal de Edición de Campaña -->
-<app-reusable-modal 
+<app-modal 
   [isOpen]="isEditModalOpen" 
   [title]="'Modificar Campaña'" 
+  [size]="'xl'"
   (close)="isEditModalOpen = false">
   <app-campana-form 
     [campana]="campana" 
@@ -114,5 +115,5 @@
     (save)="onSaveEdit($event)"
     (cancel)="isEditModalOpen = false">
   </app-campana-form>
-</app-reusable-modal>
+</app-modal>
 
