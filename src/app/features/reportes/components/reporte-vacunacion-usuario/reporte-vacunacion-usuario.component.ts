@@ -69,21 +69,29 @@ export class ReporteVacunacionUsuarioComponent implements OnInit {
   cargarUsuariosDeCampana(campanaId: string): void {
     this.campanaService.getCampaignById(campanaId).subscribe({
       next: (campana) => {
+        console.log('Campaña cargada:', campana);
+        console.log('Animales en campaña:', campana.animales);
+        
         // Extraer usuarios únicos de los animales de la campaña
         const usuariosMap = new Map<string, any>();
         (campana.animales || []).forEach(animal => {
-          if (animal.dueno && !usuariosMap.has(animal.duenoId)) {
-            usuariosMap.set(animal.duenoId, animal.dueno);
+          if (animal.dueno) {
+            const duenoId = animal.dueno.id || animal.duenoId;
+            if (duenoId && !usuariosMap.has(duenoId)) {
+              usuariosMap.set(duenoId, animal.dueno);
+            }
           }
         });
         
         this.usuarios = Array.from(usuariosMap.values());
+        console.log('Usuarios extraídos:', this.usuarios);
         
         if (this.usuarios.length === 0) {
           this.notificationService.showInfo('Esta campaña no tiene animales asignados a ningún usuario.');
         }
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error al cargar usuarios de campaña:', err);
         this.notificationService.showError('Error al cargar los usuarios de la campaña');
       }
     });

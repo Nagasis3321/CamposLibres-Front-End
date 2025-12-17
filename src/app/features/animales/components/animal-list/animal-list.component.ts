@@ -26,8 +26,8 @@ export class AnimalListComponent implements OnInit, OnChanges {
   public displayedAnimales: Animal[] = [];
   public sortColumn: SortableColumn | null = null;
   public sortDirection: 'asc' | 'desc' = 'asc';
-  public itemsPerPage = 10;
-  public itemsPerPageOptions = [10, 15, 20, 50, 100];
+  public rowsVisible = 10; // Cantidad de filas visibles, no cantidad de datos
+  public rowsVisibleOptions = [10, 15, 20, 30, 50];
 
   constructor() {
     this.searchForm = this.fb.group({
@@ -79,8 +79,18 @@ export class AnimalListComponent implements OnInit, OnChanges {
       });
     }
     
-    // Limitar la cantidad de elementos mostrados
-    this.displayedAnimales = filtered.slice(0, this.itemsPerPage);
+    // NO limitar datos, mostrar TODOS los resultados filtrados
+    this.displayedAnimales = filtered;
+  }
+
+  // Calcular altura máxima del contenedor basada en filas visibles
+  getTableMaxHeight(): string {
+    // Cada fila tiene aproximadamente 3.5rem (56px)
+    // Header tiene 3rem (48px)
+    const rowHeight = 3.5;
+    const headerHeight = 3;
+    const totalHeight = headerHeight + (rowHeight * this.rowsVisible);
+    return `${totalHeight}rem`;
   }
   private getPropertyForSorting(item: Animal, column: SortableColumn): any {
     if (column === 'dueno') {
