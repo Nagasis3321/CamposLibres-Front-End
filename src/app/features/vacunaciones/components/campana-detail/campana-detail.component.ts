@@ -4,11 +4,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Campana } from '../../../../shared/models/campana.model';
 import { CampanaService } from '../../../../shared/services/campana.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { CampanaFormComponent } from '../campana-form/campana-form.component';
+import { ReusableModalComponent } from '../../../../shared/components/reusable-modal/reusable-modal.component';
 
 @Component({
   selector: 'app-campana-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, CampanaFormComponent, ReusableModalComponent],
   templateUrl: './campana-detail.component.html',
   styleUrl: './campana-detail.component.css'
 })
@@ -20,6 +22,7 @@ export class CampanaDetailComponent implements OnInit {
 
   campana: Campana | null = null;
   loading = true;
+  isEditModalOpen = false;
 
   ngOnInit(): void {
     const campanaId = this.route.snapshot.paramMap.get('id');
@@ -55,10 +58,31 @@ export class CampanaDetailComponent implements OnInit {
     this.router.navigate(['/vacunaciones']);
   }
 
-  editCampana(): void {
+  editAnimalesCampana(): void {
+    // Redirige a la vista de vacunaciones con el parámetro de edición de animales
     if (this.campana) {
       this.router.navigate(['/vacunaciones'], { queryParams: { edit: this.campana.id } });
     }
+  }
+
+  openEditModal(): void {
+    this.isEditModalOpen = true;
+  }
+
+  onSaveEdit(updatedData: Partial<Campana>): void {
+    if (!this.campana) return;
+
+    this.campanaService.updateCampaign(this.campana.id, updatedData).subscribe({
+      next: (updatedCampana) => {
+        this.campana = updatedCampana;
+        this.isEditModalOpen = false;
+        this.notificationService.showSuccess('Campaña actualizada correctamente');
+      },
+      error: (err) => {
+        this.notificationService.showError('Error al actualizar la campaña');
+        console.error('Error actualizando campaña:', err);
+      }
+    });
   }
 }
 

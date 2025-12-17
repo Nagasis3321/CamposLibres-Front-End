@@ -86,8 +86,11 @@
   </div>
 
   <div class="flex gap-3">
-    <button (click)="editCampana()" class="btn-primary">
-      Editar Campaña
+    <button (click)="editAnimalesCampana()" class="btn-primary">
+      ✏️ Modificar Animales Campaña
+    </button>
+    <button (click)="openEditModal()" class="btn-secondary">
+      📝 Modificar Campaña
     </button>
   </div>
 </div>
@@ -99,4 +102,17 @@
 <div *ngIf="!loading && !campana" class="card">
   <p class="text-center text-gray-500">Campaña no encontrada.</p>
 </div>
+
+<!-- Modal de Edición de Campaña -->
+<app-reusable-modal 
+  [isOpen]="isEditModalOpen" 
+  [title]="'Modificar Campaña'" 
+  (close)="isEditModalOpen = false">
+  <app-campana-form 
+    [campana]="campana" 
+    [editMode]="true"
+    (save)="onSaveEdit($event)"
+    (cancel)="isEditModalOpen = false">
+  </app-campana-form>
+</app-reusable-modal>
 
