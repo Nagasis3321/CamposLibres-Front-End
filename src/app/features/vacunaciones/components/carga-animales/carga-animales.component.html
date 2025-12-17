@@ -17,7 +17,10 @@
              class="p-3 hover:bg-blue-50 cursor-pointer rounded-md text-sm border-b">
           <div class="flex justify-between items-center">
             <p class="font-semibold text-gray-800">Caravana: {{ animal.caravana || 'S/C' }}</p>
-            <span class="text-xs font-medium text-primary">Agregar</span>
+            <div class="flex gap-2">
+              <button (click)="openEditAnimal(animal, $event)" class="text-xs font-medium text-blue-600 hover:text-blue-800">Modificar</button>
+              <span class="text-xs font-medium text-primary">Agregar</span>
+            </div>
           </div>
           <div class="flex flex-wrap gap-x-4 text-xs text-gray-500 mt-1">
             <span>Dueño: {{ animal.dueno?.nombre || 'N/A' }}</span>
@@ -67,11 +70,17 @@
   </div>
 </div>
 
-<app-modal [isOpen]="isAnimalFormOpen" title="Registrar Nuevo Animal" (close)="isAnimalFormOpen = false" size="2xl">
+<app-modal 
+  [isOpen]="isAnimalFormOpen" 
+  [title]="isEditMode ? 'Modificar Animal' : 'Registrar Nuevo Animal'" 
+  (close)="closeAnimalForm()" 
+  size="2xl"
+>
   <app-animal-form
+    [animal]="animalBeingEdited"
     [duenos]="possibleOwners"
     [pelajes]="pelajes" 
     (save)="onSaveNewAnimal($event)"
-    (cancel)="isAnimalFormOpen = false">
+    (cancel)="closeAnimalForm()">
   </app-animal-form>
 </app-modal>

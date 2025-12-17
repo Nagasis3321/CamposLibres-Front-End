@@ -93,7 +93,7 @@
     <button (click)="openStateModal()" class="btn-secondary bg-yellow-600 hover:bg-yellow-700">
       + Estado
     </button>
-    <button (click)="openBirthModal()" class="btn-secondary bg-purple-600 hover:bg-purple-700">
+    <button *ngIf="animal?.sexo === 'Hembra'" (click)="openBirthModal()" class="btn-secondary bg-purple-600 hover:bg-purple-700">
       + Parto
     </button>
     <button (click)="openHistoryModal()" class="btn-secondary bg-blue-600 hover:bg-blue-700">
@@ -103,7 +103,10 @@
 
   <!-- Historial del Animal -->
   <div class="card mt-6">
-    <app-animal-history [animalId]="animal.id"></app-animal-history>
+    <app-animal-history 
+      [animalId]="animal.id"
+      (editHistoryRequest)="onEditHistoryRequest($event)"
+    ></app-animal-history>
   </div>
 </div>
 
@@ -152,15 +155,32 @@
 
 <app-modal 
   [isOpen]="isHistoryModalOpen" 
-  [title]="'Agregar al Historial'" 
+  [title]="editingHistoryId ? 'Editar Historial' : 'Agregar al Historial'" 
   (close)="closeModals()"
 >
   <app-history-form
     *ngIf="animal"
     [animalId]="animal.id"
+    [historyId]="editingHistoryId"
+    [existingHistory]="editingHistoryData"
     (save)="onSaveHistory($event)"
     (cancel)="closeModals()"
   ></app-history-form>
+</app-modal>
+
+<app-modal 
+  [isOpen]="isEditModalOpen" 
+  [title]="'Editar Animal'" 
+  (close)="closeModals()"
+>
+  <app-animal-form
+    *ngIf="animal"
+    [animal]="animal"
+    [pelajes]="(pelajes$ | async) || []"
+    [duenos]="possibleOwners"
+    (save)="onSaveEdit($event)"
+    (cancel)="closeModals()"
+  ></app-animal-form>
 </app-modal>
 
 <div *ngIf="loading" class="flex justify-center items-center h-64">

@@ -9,7 +9,11 @@ import { VaccinationFormComponent } from '../vaccination-form/vaccination-form.c
 import { AnimalStateFormComponent } from '../animal-state-form/animal-state-form.component';
 import { BirthFormComponent } from '../birth-form/birth-form.component';
 import { HistoryFormComponent } from '../history-form/history-form.component';
+import { AnimalFormComponent } from '../animal-form/animal-form.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { PelajeService } from '../../../../shared/services/pelaje.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { Observable } from 'rxjs';
 import { VaccinationService } from '../../../../shared/services/vaccination.service';
 import { AnimalStateService } from '../../../../shared/services/animal-state.service';
 import { BirthService } from '../../../../shared/services/birth.service';
@@ -29,6 +33,7 @@ import { CreateAnimalHistoryDto, HistoryType } from '../../../../shared/models/a
     AnimalStateFormComponent,
     BirthFormComponent,
     HistoryFormComponent,
+    AnimalFormComponent,
     ModalComponent
   ],
   templateUrl: './animal-detail.component.html',
@@ -43,6 +48,8 @@ export class AnimalDetailComponent implements OnInit {
   private stateService = inject(AnimalStateService);
   private birthService = inject(BirthService);
   private historyService = inject(AnimalHistoryService);
+  private pelajeService = inject(PelajeService);
+  private authService = inject(AuthService);
 
   animal: Animal | null = null;
   loading = true;
@@ -52,12 +59,22 @@ export class AnimalDetailComponent implements OnInit {
   isStateModalOpen = false;
   isBirthModalOpen = false;
   isHistoryModalOpen = false;
+  isEditModalOpen = false;
+
+  // Datos para edición
+  pelajes$!: Observable<string[]>;
+  possibleOwners: { id: string, nombre: string }[] = [];
+  
+  // Para edición de historial
+  editingHistoryId?: string;
+  editingHistoryData?: { titulo: string; descripcion?: string; fecha: string; tipo: HistoryType };
 
   ngOnInit(): void {
     const animalId = this.route.snapshot.paramMap.get('id');
     if (animalId) {
       this.loadAnimal(animalId);
     }
+    this.pelajes$ = this.pelajeService.getPelajes();
   }
 
   loadAnimal(id: string): void {
@@ -89,8 +106,34 @@ export class AnimalDetailComponent implements OnInit {
 
   editAnimal(): void {
     if (this.animal) {
-      this.router.navigate(['/animales'], { queryParams: { edit: this.animal.id } });
+      const currentUser = this.authService.currentUserValue;
+      if (currentUser) {
+        this.possibleOwners = [{ id: currentUser.id, nombre: currentUser.nombre }];
+      }
+      this.isEditModalOpen = true;
     }
+  }
+
+  onSaveEdit(animalData: Partial<Animal>): void {
+    if (!this.animal) return;
+
+    const updatePayload = { ...animalData };
+    delete updatePayload.id;
+    delete updatePayload.duenoId;
+
+    this.animalService.updateAnimal(this.animal.id, updatePayload).subscribe({
+      next: (updatedAnimal) => {
+        this.notificationService.showSuccess('Animal actualizado con éxito.');
+        this.animal = updatedAnimal;
+        this.isEditModalOpen = false;
+      },
+      error: (err) => {
+        const errorMessage = Array.isArray(err.error?.message) 
+          ? err.error.message.join('. ') 
+          : err.error?.message;
+        this.notificationService.showError(errorMessage || 'Error al actualizar el animal.');
+      }
+    });
   }
 
   openVaccinationModal(): void {
@@ -149,23 +192,61 @@ export class AnimalDetailComponent implements OnInit {
     });
   }
 
-  onSaveHistory(data: { titulo: string; descripcion?: string; fecha: string; tipo: HistoryType }): void {
+  onSaveHistory(data: { id?: string; titulo: string; descripcion?: string; fecha: string; tipo: HistoryType }): void {
     if (!this.animal) return;
 
-    const historyData: CreateAnimalHistoryDto = {
-      animalId: this.animal.id,
-      ...data,
-    };
+    if (data.id) {
+      // Edición
+      const updateData = { ...data };
+      delete updateData.id;
+      
+      this.historyService.updateHistory(data.id, updateData).subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Registro de historial actualizado correctamente.');
+          this.isHistoryModalOpen = false;
+          this.editingHistoryId = undefined;
+          this.editingHistoryData = undefined;
+          // Recargar historial
+          if (this.animal) {
+            this.loadAnimal(this.animal.id);
+          }
+        },
+        error: (err) => {
+          this.notificationService.showError(err.error?.message || 'Error al actualizar registro de historial.');
+        }
+      });
+    } else {
+      // Creación
+      const historyData: CreateAnimalHistoryDto = {
+        animalId: this.animal.id,
+        ...data,
+      };
 
-    this.historyService.createHistory(historyData).subscribe({
-      next: () => {
-        this.notificationService.showSuccess('Registro de historial creado correctamente.');
-        this.isHistoryModalOpen = false;
-      },
-      error: (err) => {
-        this.notificationService.showError(err.error?.message || 'Error al crear registro de historial.');
-      }
-    });
+      this.historyService.createHistory(historyData).subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Registro de historial creado correctamente.');
+          this.isHistoryModalOpen = false;
+          // Recargar historial
+          if (this.animal) {
+            this.loadAnimal(this.animal.id);
+          }
+        },
+        error: (err) => {
+          this.notificationService.showError(err.error?.message || 'Error al crear registro de historial.');
+        }
+      });
+    }
+  }
+
+  onEditHistoryRequest(historyItem: any): void {
+    this.editingHistoryId = historyItem.id;
+    this.editingHistoryData = {
+      titulo: historyItem.titulo,
+      descripcion: historyItem.descripcion,
+      fecha: historyItem.fecha.split('T')[0], // Formatear para input date
+      tipo: historyItem.data?.historyType || 'OBSERVACION'
+    };
+    this.isHistoryModalOpen = true;
   }
 
   closeModals(): void {
@@ -173,6 +254,9 @@ export class AnimalDetailComponent implements OnInit {
     this.isStateModalOpen = false;
     this.isBirthModalOpen = false;
     this.isHistoryModalOpen = false;
+    this.isEditModalOpen = false;
+    this.editingHistoryId = undefined;
+    this.editingHistoryData = undefined;
   }
 }
 

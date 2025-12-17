@@ -43,6 +43,8 @@ export class CargaAnimalesComponent implements OnInit, OnChanges {
   pelajes: string[] = [];
   
   isAnimalFormOpen = false;
+  isEditMode = false;
+  animalBeingEdited: Animal | null = null;
 
   constructor() {
     this.searchForm = this.fb.group({
@@ -137,13 +139,75 @@ export class CargaAnimalesComponent implements OnInit, OnChanges {
     this.filtrarAnimalesDisponibles(); // Actualiza la lista de disponibles
   }
 
+  openEditAnimal(animal: Animal, event: Event): void {
+    event.stopPropagation(); // Evitar que se active el click del contenedor
+    this.animalBeingEdited = animal;
+    this.isEditMode = true;
+    this.isAnimalFormOpen = true;
+  }
+
   onSaveNewAnimal(animalData: Partial<Animal>): void {
-    this.animalService.createAnimal(animalData).subscribe(newAnimal => {
-      this.notificationService.showSuccess(`Animal ${newAnimal.caravana || ''} creado y agregado.`);
-      this.todosLosAnimales.push(newAnimal);
-      this.agregarAnimal(newAnimal);
-      this.isAnimalFormOpen = false;
-    });
+    if (this.isEditMode && this.animalBeingEdited) {
+      // Modo edición
+      const updatePayload = { ...animalData };
+      delete updatePayload.id;
+      delete updatePayload.duenoId;
+
+      this.animalService.updateAnimal(this.animalBeingEdited.id, updatePayload).subscribe({
+        next: (updatedAnimal) => {
+          this.notificationService.showSuccess(`Animal ${updatedAnimal.caravana || ''} actualizado.`);
+          
+          // Actualizar en la lista local
+          const index = this.todosLosAnimales.findIndex(a => a.id === updatedAnimal.id);
+          if (index > -1) {
+            this.todosLosAnimales[index] = updatedAnimal;
+          }
+          
+          // Actualizar en animalesEnCampana si está presente
+          const campanaIndex = this.animalesEnCampana.findIndex(a => a.id === updatedAnimal.id);
+          if (campanaIndex > -1) {
+            this.animalesEnCampana[campanaIndex] = updatedAnimal;
+          }
+          
+          // Actualizar en listaVisual
+          const visualIndex = this.listaVisual.findIndex(item => this.isAnimal(item) && item.id === updatedAnimal.id);
+          if (visualIndex > -1) {
+            this.listaVisual[visualIndex] = updatedAnimal;
+          }
+          
+          this.filtrarAnimalesDisponibles();
+          this.closeAnimalForm();
+        },
+        error: (err) => {
+          const errorMessage = Array.isArray(err.error?.message) 
+            ? err.error.message.join('. ') 
+            : err.error?.message;
+          this.notificationService.showError(errorMessage || 'Error al actualizar el animal.');
+        }
+      });
+    } else {
+      // Modo creación
+      this.animalService.createAnimal(animalData).subscribe({
+        next: (newAnimal) => {
+          this.notificationService.showSuccess(`Animal ${newAnimal.caravana || ''} creado y agregado.`);
+          this.todosLosAnimales.push(newAnimal);
+          this.agregarAnimal(newAnimal);
+          this.closeAnimalForm();
+        },
+        error: (err) => {
+          const errorMessage = Array.isArray(err.error?.message) 
+            ? err.error.message.join('. ') 
+            : err.error?.message;
+          this.notificationService.showError(errorMessage || 'Error al crear el animal.');
+        }
+      });
+    }
+  }
+
+  closeAnimalForm(): void {
+    this.isAnimalFormOpen = false;
+    this.isEditMode = false;
+    this.animalBeingEdited = null;
   }
 
   finalizarCarga(): void {

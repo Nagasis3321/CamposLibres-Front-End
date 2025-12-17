@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AnimalHistory, HistoryType } from '../../../../shared/models/animal-history.model';
 import { Vaccination } from '../../../../shared/models/vaccination.model';
@@ -30,6 +30,7 @@ export interface HistoryItem {
 })
 export class AnimalHistoryComponent implements OnInit {
   @Input() animalId!: string;
+  @Output() editHistoryRequest = new EventEmitter<HistoryItem>();
 
   private historyService = inject(AnimalHistoryService);
   private vaccinationService = inject(VaccinationService);
@@ -160,5 +161,9 @@ export class AnimalHistoryComponent implements OnInit {
       'PARTO': 'bg-purple-100 text-purple-800'
     };
     return colors[tipo] || 'bg-gray-100 text-gray-800';
+  }
+
+  editHistory(item: HistoryItem): void {
+    this.editHistoryRequest.emit(item);
   }
 }

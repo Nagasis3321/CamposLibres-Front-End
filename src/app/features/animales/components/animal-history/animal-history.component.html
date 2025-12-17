@@ -78,6 +78,16 @@
             </div>
           </div>
         </div>
+        
+        <!-- Botón de editar solo para tipo HISTORIAL -->
+        <div *ngIf="item.tipo === 'HISTORIAL'" class="ml-4">
+          <button 
+            (click)="editHistory(item)" 
+            class="text-blue-600 hover:text-blue-800 font-semibold text-sm"
+          >
+            Editar
+          </button>
+        </div>
       </div>
     </div>
   </div>

@@ -12,7 +12,9 @@ import { HistoryType } from '../../../../shared/models/animal-history.model';
 })
 export class HistoryFormComponent implements OnInit {
   @Input() animalId!: string;
-  @Output() save = new EventEmitter<{ titulo: string; descripcion?: string; fecha: string; tipo: HistoryType }>();
+  @Input() historyId?: string;
+  @Input() existingHistory?: { titulo: string; descripcion?: string; fecha: string; tipo: HistoryType };
+  @Output() save = new EventEmitter<{ id?: string; titulo: string; descripcion?: string; fecha: string; tipo: HistoryType }>();
   @Output() cancel = new EventEmitter<void>();
 
   historyForm!: FormGroup;
@@ -21,17 +23,28 @@ export class HistoryFormComponent implements OnInit {
   constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
+    const defaultValues = this.existingHistory || {
+      tipo: HistoryType.OBSERVACION,
+      titulo: '',
+      descripcion: '',
+      fecha: new Date().toISOString().split('T')[0]
+    };
+
     this.historyForm = this.fb.group({
-      tipo: [HistoryType.OBSERVACION, [Validators.required]],
-      titulo: ['', [Validators.required]],
-      descripcion: [''],
-      fecha: [new Date().toISOString().split('T')[0], [Validators.required]],
+      tipo: [defaultValues.tipo, [Validators.required]],
+      titulo: [defaultValues.titulo, [Validators.required]],
+      descripcion: [defaultValues.descripcion || ''],
+      fecha: [defaultValues.fecha, [Validators.required]],
     });
   }
 
   onSubmit(): void {
     if (this.historyForm.valid) {
-      this.save.emit(this.historyForm.value);
+      const data = this.historyForm.value;
+      if (this.historyId) {
+        data.id = this.historyId;
+      }
+      this.save.emit(data);
     }
   }
 

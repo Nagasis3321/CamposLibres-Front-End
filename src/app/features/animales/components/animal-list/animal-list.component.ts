@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Animal } from '../../../../shared/models/animal.model';
 import { Observable, of } from 'rxjs';
 
@@ -9,7 +9,7 @@ export type SortableColumn = 'caravana' | 'tipoAnimal' | 'dueno' | 'pelaje' | 's
 @Component({
   selector: 'app-animal-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './animal-list.component.html',
 })
 export class AnimalListComponent implements OnInit, OnChanges {
@@ -26,6 +26,8 @@ export class AnimalListComponent implements OnInit, OnChanges {
   public displayedAnimales: Animal[] = [];
   public sortColumn: SortableColumn | null = null;
   public sortDirection: 'asc' | 'desc' = 'asc';
+  public itemsPerPage = 10;
+  public itemsPerPageOptions = [10, 15, 20, 50, 100];
 
   constructor() {
     this.searchForm = this.fb.group({
@@ -77,7 +79,8 @@ export class AnimalListComponent implements OnInit, OnChanges {
       });
     }
     
-    this.displayedAnimales = filtered;
+    // Limitar la cantidad de elementos mostrados
+    this.displayedAnimales = filtered.slice(0, this.itemsPerPage);
   }
   private getPropertyForSorting(item: Animal, column: SortableColumn): any {
     if (column === 'dueno') {
