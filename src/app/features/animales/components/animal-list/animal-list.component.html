@@ -3,9 +3,9 @@
   <div class="flex items-center justify-between p-4 border-b flex-shrink-0">
     <h3 class="text-lg font-semibold text-gray-700">Filtros</h3>
     <div class="flex items-center gap-2">
-      <label class="text-sm text-gray-600">Mostrar:</label>
-      <select [(ngModel)]="itemsPerPage" (change)="processList()" class="form-input w-20 text-sm">
-        <option *ngFor="let option of itemsPerPageOptions" [value]="option">{{ option }}</option>
+      <label class="text-sm text-gray-600">Filas visibles:</label>
+      <select [(ngModel)]="rowsVisible" class="form-input w-20 text-sm">
+        <option *ngFor="let option of rowsVisibleOptions" [value]="option">{{ option }}</option>
       </select>
     </div>
   </div>
@@ -43,7 +43,7 @@
   </form>
 
   <!-- Contenedor de la Tabla con Scroll -->
-  <div class="overflow-auto flex-grow max-h-[25rem]">
+  <div class="overflow-auto flex-grow" [style.max-height]="getTableHeight()">
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-neutral-light sticky top-0 z-10">
         <tr>
