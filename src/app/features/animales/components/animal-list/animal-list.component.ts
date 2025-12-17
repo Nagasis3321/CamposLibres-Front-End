@@ -26,8 +26,8 @@ export class AnimalListComponent implements OnInit, OnChanges {
   public displayedAnimales: Animal[] = [];
   public sortColumn: SortableColumn | null = null;
   public sortDirection: 'asc' | 'desc' = 'asc';
-  public rowsVisible = 10;
-  public rowsVisibleOptions = [10, 15, 20, 25, 30];
+  public itemsPerPage = 10;
+  public itemsPerPageOptions = [10, 15, 20, 50, 100];
 
   constructor() {
     this.searchForm = this.fb.group({
@@ -49,7 +49,7 @@ export class AnimalListComponent implements OnInit, OnChanges {
     }
   }
 
-  private processList(): void {
+  public processList(): void {
     const filters = this.searchForm.value;
     
     let filtered = this.animales.filter(animal => {
@@ -79,15 +79,8 @@ export class AnimalListComponent implements OnInit, OnChanges {
       });
     }
     
-    // Mostrar todos los animales filtrados (sin limitar)
-    this.displayedAnimales = filtered;
-  }
-
-  getTableHeight(): string {
-    // Altura aproximada: 60px por fila + headers
-    const rowHeight = 60;
-    const headerHeight = 50;
-    return `${(this.rowsVisible * rowHeight) + headerHeight}px`;
+    // Limitar la cantidad de elementos mostrados
+    this.displayedAnimales = filtered.slice(0, this.itemsPerPage);
   }
   private getPropertyForSorting(item: Animal, column: SortableColumn): any {
     if (column === 'dueno') {
@@ -117,5 +110,20 @@ export class AnimalListComponent implements OnInit, OnChanges {
 
   trackById(index: number, item: Animal): string {
     return item.id;
+  }
+
+  hasInconsistency(animal: Animal): boolean {
+    const tiposMacho = ['Toro', 'Novillo', 'Ternero'];
+    const tiposHembra = ['Vaca', 'Vaquilla', 'Ternera'];
+    
+    if (animal.sexo === 'Macho' && !tiposMacho.includes(animal.tipoAnimal)) {
+      return true;
+    }
+    
+    if (animal.sexo === 'Hembra' && !tiposHembra.includes(animal.tipoAnimal)) {
+      return true;
+    }
+    
+    return false;
   }
 }

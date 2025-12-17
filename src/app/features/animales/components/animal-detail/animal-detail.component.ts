@@ -100,6 +100,40 @@ export class AnimalDetailComponent implements OnInit {
     });
   }
 
+  hasInconsistentData(): boolean {
+    if (!this.animal) return false;
+    
+    const tiposMacho = ['Toro', 'Novillo', 'Ternero'];
+    const tiposHembra = ['Vaca', 'Vaquilla', 'Ternera'];
+    
+    if (this.animal.sexo === 'Macho' && !tiposMacho.includes(this.animal.tipoAnimal)) {
+      return true;
+    }
+    
+    if (this.animal.sexo === 'Hembra' && !tiposHembra.includes(this.animal.tipoAnimal)) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  getInconsistencyMessage(): string {
+    if (!this.animal) return '';
+    
+    const tiposMacho = ['Toro', 'Novillo', 'Ternero'];
+    const tiposHembra = ['Vaca', 'Vaquilla', 'Ternera'];
+    
+    if (this.animal.sexo === 'Macho' && !tiposMacho.includes(this.animal.tipoAnimal)) {
+      return `⚠️ INCONSISTENCIA: El animal es "${this.animal.tipoAnimal}" (tipo hembra) pero está marcado como "Macho". Debería ser: ${tiposMacho.join(', ')} para machos.`;
+    }
+    
+    if (this.animal.sexo === 'Hembra' && !tiposHembra.includes(this.animal.tipoAnimal)) {
+      return `⚠️ INCONSISTENCIA: El animal es "${this.animal.tipoAnimal}" (tipo macho) pero está marcado como "Hembra". Debería ser: ${tiposHembra.join(', ')} para hembras.`;
+    }
+    
+    return '';
+  }
+
   goBack(): void {
     this.router.navigate(['/animales']);
   }

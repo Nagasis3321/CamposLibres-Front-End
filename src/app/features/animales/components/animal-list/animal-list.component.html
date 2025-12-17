@@ -3,9 +3,9 @@
   <div class="flex items-center justify-between p-4 border-b flex-shrink-0">
     <h3 class="text-lg font-semibold text-gray-700">Filtros</h3>
     <div class="flex items-center gap-2">
-      <label class="text-sm text-gray-600">Filas visibles:</label>
-      <select [(ngModel)]="rowsVisible" class="form-input w-20 text-sm">
-        <option *ngFor="let option of rowsVisibleOptions" [value]="option">{{ option }}</option>
+      <label class="text-sm text-gray-600">Mostrar:</label>
+      <select [(ngModel)]="itemsPerPage" (change)="processList()" class="form-input w-20 text-sm">
+        <option *ngFor="let option of itemsPerPageOptions" [value]="option">{{ option }}</option>
       </select>
     </div>
   </div>
@@ -43,7 +43,7 @@
   </form>
 
   <!-- Contenedor de la Tabla con Scroll -->
-  <div class="overflow-auto flex-grow" [style.max-height]="getTableHeight()">
+  <div class="overflow-auto flex-grow max-h-[25rem]">
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-neutral-light sticky top-0 z-10">
         <tr>
@@ -69,12 +69,23 @@
         <tr *ngIf="displayedAnimales.length === 0">
           <td colspan="6" class="text-center py-8 text-neutral">No se encontraron animales con los filtros aplicados.</td>
         </tr>
-        <tr *ngFor="let animal of displayedAnimales; trackBy: trackById" class="hover:bg-gray-50">
-          <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm font-medium text-neutral-dark">{{ animal.caravana || '-' }}</td>
-          <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm text-neutral">{{ animal.tipoAnimal }}</td>
+        <tr *ngFor="let animal of displayedAnimales; trackBy: trackById" 
+            class="hover:bg-gray-50"
+            [class.bg-red-50]="hasInconsistency(animal)">
+          <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm font-medium text-neutral-dark">
+            <div class="flex items-center gap-2">
+              <span *ngIf="hasInconsistency(animal)" class="text-red-500 font-bold text-lg" title="Datos inconsistentes: Sexo-Tipo no coinciden">⚠️</span>
+              {{ animal.caravana || '-' }}
+            </div>
+          </td>
+          <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm" [class.text-red-600]="hasInconsistency(animal)" [class.font-bold]="hasInconsistency(animal)">
+            {{ animal.tipoAnimal }}
+          </td>
           <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm text-neutral">{{ animal.dueno?.nombre || 'No asignado' }}</td>
           <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm text-neutral">{{ animal.pelaje }}</td>
-          <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm text-neutral">{{ animal.sexo }}</td>
+          <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm" [class.text-red-600]="hasInconsistency(animal)" [class.font-bold]="hasInconsistency(animal)">
+            {{ animal.sexo }}
+          </td>
           <td class="py-4 px-2 sm:px-6 whitespace-nowrap text-sm font-medium space-x-4">
             <button (click)="verDetalle.emit(animal)" class="text-primary hover:text-primary-dark font-semibold">Ver</button>
             <button (click)="eliminar.emit(animal.id)" class="text-danger hover:text-red-700 font-semibold">Eliminar</button>
