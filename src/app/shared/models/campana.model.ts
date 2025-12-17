@@ -8,6 +8,7 @@ export interface Campana {
   fecha: string;
   productosUtilizados: string | null;
   observaciones: string | null;
+  estado: string;
   propietario?: User;
   group?: HydratedGroup;
   animales: Animal[];
@@ -19,7 +20,9 @@ export interface Campana {
 export interface CampaignDto {
   nombre: string;
   fecha: string;
+  productosUtilizados?: string | null;
   observaciones?: string | null;
+  estado?: string;
   groupId?: string | null;
   animalesIds: string[];
 }

@@ -23,7 +23,8 @@ export class CampanaFormComponent implements OnInit, OnChanges {
       nombre: ['', Validators.required],
       fecha: ['', Validators.required],
       productosUtilizados: [''],
-      observaciones: ['']
+      observaciones: [''],
+      estado: ['Pendiente', Validators.required]
     });
   }
 
@@ -52,7 +53,8 @@ export class CampanaFormComponent implements OnInit, OnChanges {
         nombre: this.campana.nombre,
         fecha: fechaFormateada,
         productosUtilizados: this.campana.productosUtilizados || '',
-        observaciones: this.campana.observaciones || ''
+        observaciones: this.campana.observaciones || '',
+        estado: this.campana.estado || 'Pendiente'
       });
     }
   }
